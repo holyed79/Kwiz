@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AURA // Futuristic Quiz Platform v3.0</title>
+    <title>AURA // Futuristic Quiz Platform v4.0</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome Icons -->
@@ -66,7 +66,7 @@
 
         /* 3D Glassmorphism Card Style */
         .glass-card {
-            background: rgba(15, 23, 42, 0.7);
+            background: rgba(15, 23, 42, 0.75);
             backdrop-filter: blur(16px);
             border: 1px solid rgba(0, 240, 255, 0.2);
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8),
@@ -110,7 +110,6 @@
             transform: scale(1.02);
         }
 
-        /* Timer pulse animation */
         .timer-warning {
             animation: pulse-red 1s infinite alternate;
         }
@@ -119,7 +118,6 @@
             100% { color: #ff007f; text-shadow: 0 0 20px #ff007f; }
         }
 
-        /* Custom Scrollbar */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: #030712; }
         ::-webkit-scrollbar-thumb { background: #00f0ff; border-radius: 3px; }
@@ -132,17 +130,17 @@
     <div class="fixed bottom-0 right-1/4 w-96 h-96 bg-cyber-magenta/10 rounded-full blur-3xl pointer-events-none"></div>
     <div class="bg-grid"></div>
 
-    <!-- Header Navigation -->
-    <header class="relative z-10 border-b border-cyber-cyan/20 bg-cyber-black/80 backdrop-blur-md px-6 py-4">
+    <!-- Header Navigation (Hidden automatically if scanned by participant) -->
+    <header id="main-header" class="relative z-10 border-b border-cyber-cyan/20 bg-cyber-black/80 backdrop-blur-md px-6 py-4">
         <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <i class="fa-solid fa-cube text-3xl text-cyber-cyan animate-pulse"></i>
                 <h1 class="font-orbitron text-2xl font-black tracking-wider glow-cyan">
-                    AURA <span class="text-cyber-magenta text-sm tracking-normal">// QUIZ CORE v3.0</span>
+                    AURA <span class="text-cyber-magenta text-sm tracking-normal">// QUIZ CORE v4.0</span>
                 </h1>
             </div>
             
-            <div class="flex items-center gap-4">
+            <div id="nav-buttons" class="flex items-center gap-4">
                 <button onclick="switchView('admin')" id="nav-admin" class="px-4 py-2 rounded-lg font-semibold border border-cyber-cyan text-cyber-cyan hover:bg-cyber-cyan/20 transition font-orbitron text-sm flex items-center gap-2">
                     <i class="fa-solid fa-user-gear"></i> Admin Command
                 </button>
@@ -161,7 +159,6 @@
         <!-- ==================================================================== -->
         <div id="view-admin" class="space-y-8">
             
-            <!-- Global Admin Control & Timer Settings Bar -->
             <div class="glass-card p-6 flex flex-wrap items-center justify-between gap-6 border-l-4 border-l-cyber-cyan">
                 <div>
                     <h2 class="font-orbitron text-xl font-bold text-cyber-cyan flex items-center gap-2">
@@ -171,7 +168,6 @@
                 </div>
 
                 <div class="flex flex-wrap items-center gap-6">
-                    <!-- Global Timer Setting -->
                     <div class="flex items-center gap-2 bg-cyber-black/60 border border-cyber-cyan/30 rounded px-3 py-1.5">
                         <i class="fa-solid fa-stopwatch text-cyber-cyan"></i>
                         <span class="text-xs font-orbitron text-gray-300">GLOBAL TIMER:</span>
@@ -180,21 +176,18 @@
                         <span class="text-xs text-gray-400">sec</span>
                     </div>
 
-                    <!-- Instant Feedback Toggle -->
                     <label class="flex items-center gap-3 cursor-pointer">
                         <span class="text-xs font-semibold">Instant Feedback:</span>
                         <input type="checkbox" id="toggle-instant-feedback" class="sr-only peer" onchange="updateSettings()">
                         <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyber-cyan relative"></div>
                     </label>
 
-                    <!-- Reveal Scores Toggle -->
                     <label class="flex items-center gap-3 cursor-pointer">
                         <span class="text-xs font-semibold">Reveal Scoreboard:</span>
                         <input type="checkbox" id="toggle-reveal-scores" class="sr-only peer" onchange="updateSettings()">
                         <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyber-magenta relative"></div>
                     </label>
 
-                    <!-- QR Modal Trigger -->
                     <button onclick="openQRModal()" class="btn-cyber-cyan px-3 py-1.5 rounded text-xs font-orbitron font-bold text-white flex items-center gap-2">
                         <i class="fa-solid fa-qrcode"></i> QR Access Code
                     </button>
@@ -203,7 +196,6 @@
 
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
                 
-                <!-- Question Creator Form (Left Column) -->
                 <div class="lg:col-span-5 space-y-6">
                     <div class="glass-card p-6 border-t-2 border-t-cyber-cyan">
                         <h3 class="font-orbitron text-lg font-bold text-cyber-cyan mb-4 flex items-center gap-2">
@@ -211,14 +203,12 @@
                         </h3>
 
                         <form id="question-form" onsubmit="saveQuestion(event)" class="space-y-4">
-                            <!-- Category -->
                             <div>
                                 <label class="block text-xs font-orbitron text-gray-400 mb-1">CATEGORY</label>
                                 <input type="text" id="q-category" required placeholder="e.g. Cybernetics, Quantum, History" 
                                     class="w-full bg-cyber-black/80 border border-cyber-cyan/30 rounded px-3 py-2 text-sm focus:outline-none focus:border-cyber-cyan text-white">
                             </div>
 
-                            <!-- Question Type & Timer Setting -->
                             <div class="grid grid-cols-2 gap-3">
                                 <div>
                                     <label class="block text-xs font-orbitron text-gray-400 mb-1">QUESTION TYPE</label>
@@ -236,14 +226,12 @@
                                 </div>
                             </div>
 
-                            <!-- Question Text -->
                             <div>
                                 <label class="block text-xs font-orbitron text-gray-400 mb-1">QUESTION STATEMENT</label>
                                 <textarea id="q-text" rows="3" required placeholder="Enter query statement..." 
                                     class="w-full bg-cyber-black/80 border border-cyber-cyan/30 rounded px-3 py-2 text-sm focus:outline-none focus:border-cyber-cyan text-white"></textarea>
                             </div>
 
-                            <!-- Choices & Correct Answer -->
                             <div id="dynamic-answer-container" class="space-y-3 p-3 bg-cyber-black/40 rounded border border-gray-800"></div>
 
                             <button type="submit" class="w-full btn-cyber-cyan py-3 rounded-lg font-orbitron font-bold text-white tracking-widest text-sm flex items-center justify-center gap-2">
@@ -253,7 +241,6 @@
                     </div>
                 </div>
 
-                <!-- Question Bank & One-by-One Broadcast Mode (Right Column) -->
                 <div class="lg:col-span-7 space-y-6">
                     <div class="glass-card p-6 border-t-2 border-t-cyber-magenta">
                         <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
@@ -261,10 +248,9 @@
                                 <i class="fa-solid fa-database"></i> QUESTION BANK (<span id="question-count">0</span>)
                             </h3>
 
-                            <!-- Sequence Controls -->
                             <div class="flex flex-wrap gap-2">
                                 <button onclick="startAutoOneByOneSequence()" class="btn-cyber-magenta px-3 py-1.5 rounded text-xs font-orbitron font-bold text-white flex items-center gap-1 animate-pulse">
-                                    <i class="fa-solid fa-play"></i> Auto Send 1-by-1 (With Timer)
+                                    <i class="fa-solid fa-play"></i> Auto Send 1-by-1
                                 </button>
                                 <button onclick="publishAllQuestions()" class="bg-gray-800 hover:bg-gray-700 border border-cyber-cyan/30 text-cyber-cyan px-3 py-1.5 rounded text-xs font-orbitron flex items-center gap-1">
                                     <i class="fa-solid fa-tower-broadcast"></i> Publish All
@@ -275,7 +261,6 @@
                             </div>
                         </div>
 
-                        <!-- Active Broadcast Monitor -->
                         <div id="active-broadcast-status" class="hidden mb-6 p-4 bg-cyber-magenta/10 border border-cyber-magenta rounded-lg flex justify-between items-center">
                             <div>
                                 <span class="text-xs font-orbitron text-cyber-magenta font-bold flex items-center gap-2">
@@ -289,7 +274,6 @@
                             </div>
                         </div>
 
-                        <!-- Question List -->
                         <div id="question-list" class="space-y-4 max-h-[600px] overflow-y-auto pr-2"></div>
                     </div>
                 </div>
@@ -301,7 +285,6 @@
         <!-- ==================================================================== -->
         <div id="view-participant" class="hidden max-w-3xl mx-auto space-y-6">
             
-            <!-- Credentials Screen -->
             <div id="participant-login-card" class="glass-card p-8 text-center space-y-6 border-t-2 border-t-cyber-cyan">
                 <i class="fa-solid fa-id-card-clip text-5xl text-cyber-cyan animate-bounce"></i>
                 <div>
@@ -317,10 +300,8 @@
                 </div>
             </div>
 
-            <!-- Active Participant Quiz Feed -->
             <div id="participant-active-quiz" class="hidden space-y-6">
                 
-                <!-- Status Bar -->
                 <div class="glass-card p-4 flex justify-between items-center border-l-4 border-l-cyber-cyan">
                     <div class="flex items-center gap-3">
                         <div class="w-10 h-10 rounded-full bg-cyber-cyan/20 border border-cyber-cyan flex items-center justify-center text-cyber-cyan font-bold">
@@ -332,14 +313,12 @@
                         </div>
                     </div>
 
-                    <!-- Participant Score -->
                     <div id="participant-score-box" class="bg-cyber-black/80 border border-cyber-magenta/40 px-4 py-2 rounded-lg text-right">
                         <p class="text-xs text-cyber-magenta font-orbitron font-bold">SCOREBOARD</p>
                         <p id="display-user-score" class="text-xl font-black text-white">-- / --</p>
                     </div>
                 </div>
 
-                <!-- Live Feed of Published Questions -->
                 <div id="published-questions-container" class="space-y-6"></div>
             </div>
         </div>
@@ -348,7 +327,7 @@
 
     <!-- Footer -->
     <footer class="relative z-10 border-t border-cyber-cyan/10 bg-cyber-black/90 py-4 text-center text-xs text-gray-500 font-orbitron">
-        AURA QUIZ ENGINE v3.0 // HIGH-TECH INTERACTIVE SYSTEM WITH LIVE COUNTDOWN
+        AURA QUIZ ENGINE v4.0 // HIGH-TECH INTERACTIVE SYSTEM
     </footer>
 
     <!-- QR CODE MODAL -->
@@ -358,7 +337,7 @@
                 <i class="fa-solid fa-xmark"></i>
             </button>
             <h3 class="font-orbitron text-lg font-bold text-cyber-cyan">PARTICIPANT ACCESS QR</h3>
-            <p class="text-xs text-gray-400">Scan QR code to directly join the quiz session.</p>
+            <p class="text-xs text-gray-400">Scan QR code with mobile camera to join directly as a participant.</p>
             <div class="bg-white p-4 rounded-xl inline-block mx-auto" id="qrcode"></div>
             <p class="text-xs font-mono text-cyber-cyan break-all" id="qr-link-text"></p>
             <button onclick="closeQRModal()" class="w-full btn-cyber-cyan py-2 rounded font-orbitron text-sm font-bold text-white">CLOSE</button>
@@ -369,33 +348,38 @@
     <!--                           JAVASCRIPT LOGIC                           -->
     <!-- ==================================================================== -->
     <script>
-        // State Management
         let state = {
             settings: {
-                globalTimer: 30, // seconds default
+                globalTimer: 30,
                 instantFeedback: true,
                 revealScores: true
             },
             questions: [],
             participant: {
                 name: '',
-                answers: {}, // qId: answer
-                scores: {}   // qId: boolean
+                answers: {},
+                scores: {}
             }
         };
 
         let liveTimerInterval = null;
         let activeSequencerIndex = -1;
 
-        // On Load initialization
         window.addEventListener('DOMContentLoaded', () => {
             loadState();
             renderAnswerInputs();
             renderAdminQuestionList();
             syncSettingsUI();
-            switchView('admin');
 
-            // Sync continuous interval for participants UI
+            // Detect if participant scanned the QR code (URL contains #participant)
+            if (window.location.hash === '#participant') {
+                // Hide admin navigation and header branding for clean participant view
+                document.getElementById('main-header').style.display = 'none';
+                switchView('participant');
+            } else {
+                switchView('admin');
+            }
+
             setInterval(() => {
                 if (document.getElementById('view-participant').classList.contains('hidden') === false) {
                     renderParticipantPortal();
@@ -404,11 +388,11 @@
         });
 
         function saveState() {
-            localStorage.setItem('aura_quiz_v3_state', JSON.stringify(state));
+            localStorage.setItem('aura_quiz_v4_state', JSON.stringify(state));
         }
 
         function loadState() {
-            const saved = localStorage.getItem('aura_quiz_v3_state');
+            const saved = localStorage.getItem('aura_quiz_v4_state');
             if (saved) {
                 state = JSON.parse(saved);
             } else {
@@ -422,18 +406,6 @@
                         correctAnswer: 'Synaptic Synchronization',
                         timer: 20,
                         timeRemaining: 20,
-                        published: false,
-                        isLocked: false
-                    },
-                    {
-                        id: 'q2',
-                        category: 'AI Ethics',
-                        type: 'tf',
-                        question: 'Asimov\'s First Law of Robotics prohibits harm to human beings.',
-                        choices: ['True', 'False'],
-                        correctAnswer: 'True',
-                        timer: 15,
-                        timeRemaining: 15,
                         published: false,
                         isLocked: false
                     }
@@ -456,8 +428,8 @@
             } else {
                 adminView.classList.add('hidden');
                 participantView.classList.remove('hidden');
-                navPart.classList.add('bg-cyber-magenta/20');
-                navAdmin.classList.remove('bg-cyber-cyan/20');
+                if(navPart) navPart.classList.add('bg-cyber-magenta/20');
+                if(navAdmin) navAdmin.classList.remove('bg-cyber-cyan/20');
                 renderParticipantPortal();
             }
         }
@@ -469,8 +441,7 @@
         }
 
         function updateGlobalTimer() {
-            const val = parseInt(document.getElementById('global-timer-input').value) || 30;
-            state.settings.globalTimer = val;
+            state.settings.globalTimer = parseInt(document.getElementById('global-timer-input').value) || 30;
             saveState();
         }
 
@@ -481,7 +452,6 @@
             renderParticipantPortal();
         }
 
-        // Render Answer Controls in Creator Form
         function renderAnswerInputs() {
             const type = document.getElementById('q-type').value;
             const container = document.getElementById('dynamic-answer-container');
@@ -521,14 +491,12 @@
             }
         }
 
-        // Save New Question
         function saveQuestion(e) {
             e.preventDefault();
             const category = document.getElementById('q-category').value;
             const type = document.getElementById('q-type').value;
             const questionText = document.getElementById('q-text').value;
             const customTimer = parseInt(document.getElementById('q-timer').value);
-
             const qTimer = (!isNaN(customTimer) && customTimer > 0) ? customTimer : state.settings.globalTimer;
 
             let choices = [];
@@ -572,7 +540,6 @@
             renderAdminQuestionList();
         }
 
-        // Render Admin List
         function renderAdminQuestionList() {
             const list = document.getElementById('question-list');
             document.getElementById('question-count').innerText = state.questions.length;
@@ -593,22 +560,19 @@
                                 ${q.type.toUpperCase()}
                             </span>
                             <span class="text-xs font-orbitron px-2 py-0.5 rounded bg-cyber-black border border-cyber-cyan/40 text-cyber-cyan">
-                                <i class="fa-solid fa-clock"></i> ${q.timeRemaining}s / ${q.timer}s
+                                <i class="fa-solid fa-clock"></i> ${q.timer}s
                             </span>
                         </div>
                         
                         <div class="flex items-center gap-2">
-                            <!-- Broadcast Single Question with Timer -->
                             <button onclick="broadcastSingleQuestion('${q.id}')" class="px-2.5 py-1 rounded text-xs font-orbitron font-bold bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan hover:bg-cyber-cyan/40">
-                                <i class="fa-solid fa-stopwatch"></i> Launch with Timer
+                                <i class="fa-solid fa-stopwatch"></i> Launch Timer
                             </button>
-                            <!-- Delete -->
                             <button onclick="deleteQuestion('${q.id}')" class="text-gray-500 hover:text-cyber-magenta p-1">
                                 <i class="fa-solid fa-trash"></i>
                             </button>
                         </div>
                     </div>
-
                     <p class="font-bold text-white text-sm">${idx + 1}. ${q.question}</p>
                     <div class="text-xs text-gray-400"><span class="text-cyber-cyan">Key:</span> ${q.correctAnswer}</div>
                 </div>
@@ -621,14 +585,8 @@
             renderAdminQuestionList();
         }
 
-        // ====================================================================
-        //                 ONE-BY-ONE TIMER BROADCASTING LOGIC
-        // ====================================================================
-
         function broadcastSingleQuestion(qId) {
             clearInterval(liveTimerInterval);
-            
-            // Hide all other questions
             state.questions.forEach(q => {
                 if (q.id === qId) {
                     q.published = true;
@@ -638,7 +596,6 @@
             });
             saveState();
             renderAdminQuestionList();
-
             startQuestionCountdown(qId);
         }
 
@@ -647,7 +604,6 @@
                 alert('Question bank is empty!');
                 return;
             }
-
             activeSequencerIndex = 0;
             launchSequencerNextQuestion();
         }
@@ -655,13 +611,11 @@
         function launchSequencerNextQuestion() {
             if (activeSequencerIndex >= state.questions.length) {
                 document.getElementById('active-broadcast-status').classList.add('hidden');
-                alert('All questions have been published one-by-one!');
+                alert('All questions have been published!');
                 return;
             }
 
-            // Unpublish all questions first
             state.questions.forEach(q => q.published = false);
-
             const targetQ = state.questions[activeSequencerIndex];
             targetQ.published = true;
             targetQ.isLocked = false;
@@ -670,20 +624,18 @@
             saveState();
             renderAdminQuestionList();
 
-            // Display Admin Status Card
             const statusCard = document.getElementById('active-broadcast-status');
             statusCard.classList.remove('hidden');
             document.getElementById('broadcast-question-title').innerText = `${activeSequencerIndex + 1}. ${targetQ.question}`;
 
             startQuestionCountdown(targetQ.id, () => {
                 activeSequencerIndex++;
-                launchSequencerNextQuestion(); // Proceed to next question automatically when timer hits 0
+                launchSequencerNextQuestion();
             });
         }
 
         function startQuestionCountdown(qId, onComplete) {
             clearInterval(liveTimerInterval);
-
             liveTimerInterval = setInterval(() => {
                 const targetQ = state.questions.find(q => q.id === qId);
                 if (!targetQ) {
@@ -693,17 +645,15 @@
 
                 if (targetQ.timeRemaining > 0) {
                     targetQ.timeRemaining--;
-                    document.getElementById('broadcast-timer-count').innerText = `${targetQ.timeRemaining}s`;
+                    const counterElem = document.getElementById('broadcast-timer-count');
+                    if(counterElem) counterElem.innerText = `${targetQ.timeRemaining}s`;
                     saveState();
                 } else {
                     clearInterval(liveTimerInterval);
-                    targetQ.isLocked = true; // Lock answer inputs for users
+                    targetQ.isLocked = true;
                     saveState();
                     renderAdminQuestionList();
-
-                    if (onComplete) {
-                        setTimeout(onComplete, 1500); // 1.5-second buffer before loading next question
-                    }
+                    if (onComplete) setTimeout(onComplete, 1500);
                 }
             }, 1000);
         }
@@ -728,10 +678,6 @@
             renderAdminQuestionList();
         }
 
-        // ====================================================================
-        //                        PARTICIPANT LOGIC
-        // ====================================================================
-
         function startParticipantSession() {
             const nameInput = document.getElementById('participant-name').value.trim();
             if (!nameInput) return;
@@ -741,32 +687,33 @@
 
             document.getElementById('participant-login-card').classList.add('hidden');
             document.getElementById('participant-active-quiz').classList.remove('hidden');
-
             renderParticipantPortal();
         }
 
         function renderParticipantPortal() {
             if (!state.participant.name) return;
 
-            document.getElementById('display-user-name').innerText = state.participant.name;
+            const nameElem = document.getElementById('display-user-name');
+            if(nameElem) nameElem.innerText = state.participant.name;
 
             const scoreBox = document.getElementById('participant-score-box');
             if (state.settings.revealScores) {
-                scoreBox.classList.remove('hidden');
+                if(scoreBox) scoreBox.classList.remove('hidden');
                 calculateAndDisplayScore();
             } else {
-                scoreBox.classList.add('hidden');
+                if(scoreBox) scoreBox.classList.add('hidden');
             }
 
             const publishedQuestions = state.questions.filter(q => q.published);
             const container = document.getElementById('published-questions-container');
+            if(!container) return;
 
             if (publishedQuestions.length === 0) {
                 container.innerHTML = `
                     <div class="glass-card p-12 text-center space-y-3">
                         <i class="fa-solid fa-radar text-4xl text-cyber-cyan animate-spin"></i>
                         <h3 class="font-orbitron text-lg font-bold text-white">AWAITING LIVE BROADCAST</h3>
-                        <p class="text-sm text-gray-400">The administrator has not pushed any live questions.</p>
+                        <p class="text-sm text-gray-400">The administrator has not pushed any live questions yet.</p>
                     </div>
                 `;
                 return;
@@ -784,8 +731,6 @@
                             <span class="text-xs font-orbitron px-2 py-0.5 rounded bg-cyber-cyan/10 border border-cyber-cyan/40 text-cyber-cyan">
                                 CATEGORY: ${q.category.toUpperCase()}
                             </span>
-                            
-                            <!-- Live Countdown Display for Participant -->
                             <div class="font-orbitron font-bold text-sm flex items-center gap-2 ${q.timeRemaining <= 5 ? 'timer-warning' : 'text-cyber-cyan'}">
                                 <i class="fa-solid fa-clock"></i>
                                 <span>${isTimeExpired ? 'TIME EXPIRED' : q.timeRemaining + 's'}</span>
@@ -794,12 +739,10 @@
 
                         <h4 class="text-lg font-bold text-white">${q.question}</h4>
 
-                        <!-- Input choices -->
                         <div class="space-y-2">
                             ${renderParticipantInput(q, hasAnswered || isTimeExpired, userSubmittedAnswer)}
                         </div>
 
-                        <!-- Feedback Box -->
                         ${hasAnswered && state.settings.instantFeedback ? `
                             <div class="p-3 rounded-lg border text-sm flex items-center justify-between ${isCorrect ? 'bg-green-950/40 border-cyber-green text-cyber-green' : 'bg-rose-950/40 border-cyber-magenta text-cyber-magenta'}">
                                 <div class="flex items-center gap-2">
@@ -861,16 +804,16 @@
             if (!question || question.timeRemaining <= 0) return;
 
             const isCorrect = selectedChoice.trim().toLowerCase() === question.correctAnswer.trim().toLowerCase();
-
             state.participant.answers[qId] = selectedChoice;
             state.participant.scores[qId] = isCorrect;
-
             saveState();
             renderParticipantPortal();
         }
 
         function submitDirectAnswer(qId) {
-            const inputVal = document.getElementById(`input-id-${qId}`).value.trim();
+            const inputElem = document.getElementById(`input-id-${qId}`);
+            if (!inputElem) return;
+            const inputVal = inputElem.value.trim();
             if (!inputVal) return;
             submitAnswer(qId, inputVal);
         }
@@ -879,22 +822,23 @@
             const published = state.questions.filter(q => q.published);
             let score = 0;
             published.forEach(q => {
-                if (state.participant.scores[q.id] === true) {
-                    score++;
-                }
+                if (state.participant.scores[q.id] === true) score++;
             });
-            document.getElementById('display-user-score').innerText = `${score} / ${published.length}`;
+            const scoreElem = document.getElementById('display-user-score');
+            if(scoreElem) scoreElem.innerText = `${score} / ${published.length}`;
         }
 
-        // Modal Logic
         function openQRModal() {
             const modal = document.getElementById('qr-modal');
             const qrContainer = document.getElementById('qrcode');
             qrContainer.innerHTML = '';
-            document.getElementById('qr-link-text').innerText = window.location.href;
+            
+            // Automatically append #participant hash so QR code directs straight to participant view
+            const participantURL = window.location.origin + window.location.pathname + '#participant';
+            document.getElementById('qr-link-text').innerText = participantURL;
 
             new QRCode(qrContainer, {
-                text: window.location.href,
+                text: participantURL,
                 width: 180,
                 height: 180,
                 colorDark: "#030712",
