@@ -8,11 +8,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Alpine.js for reactive state management -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <style>
-        .ghost { opacity: 0.4; }
-        .drag-item { cursor: grab; }
-        .drag-item:active { cursor: grabbing; }
-    </style>
 </head>
 <body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans" x-data="quizApp()">
 
@@ -107,7 +102,7 @@
                             </div>
                         </template>
 
-                        <!-- Order / Sequence (Interactive Drag/Move List) -->
+                        <!-- Order / Sequence -->
                         <template x-if="activeQuestion.type === 'order'">
                             <div class="space-y-2">
                                 <p class="text-xs text-slate-400 mb-2">Arrange items in correct order using ▲ / ▼ arrows:</p>
@@ -199,7 +194,6 @@
                     <h3 class="text-lg font-bold text-indigo-400 border-b border-slate-700 pb-2">⚙️ Admin Live Controls</h3>
                     
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
-                        <!-- Toggle Correct/Wrong Feedback -->
                         <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-700 flex justify-between items-center">
                             <div>
                                 <p class="font-bold">Show Immediate Answer Feedback</p>
@@ -208,7 +202,6 @@
                             <input type="checkbox" x-model="adminSettings.showImmediateResult" @change="saveAdminSettings" class="h-4 w-4 rounded accent-indigo-600">
                         </div>
 
-                        <!-- Toggle Count Only -->
                         <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-700 flex justify-between items-center">
                             <div>
                                 <p class="font-bold">Show Correct Count Only</p>
@@ -217,7 +210,6 @@
                             <input type="checkbox" x-model="adminSettings.showCountOnly" @change="saveAdminSettings" class="h-4 w-4 rounded accent-indigo-600">
                         </div>
 
-                        <!-- Toggle Scoreboard Visibility -->
                         <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-700 flex justify-between items-center">
                             <div>
                                 <p class="font-bold">Show Scoreboard</p>
@@ -226,7 +218,6 @@
                             <input type="checkbox" x-model="adminSettings.showScoreboard" @change="saveAdminSettings" class="h-4 w-4 rounded accent-indigo-600">
                         </div>
 
-                        <!-- Scoreboard Masking Settings -->
                         <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-700 space-y-2">
                             <div class="flex justify-between items-center">
                                 <p class="font-bold">Anonymize / Mask Names</p>
@@ -240,7 +231,6 @@
                             </select>
                         </div>
 
-                        <!-- Auto-Elimination Settings -->
                         <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-700 space-y-2">
                             <div class="flex justify-between items-center">
                                 <p class="font-bold">Auto-Eliminate Participants</p>
@@ -252,7 +242,6 @@
                             </div>
                         </div>
 
-                        <!-- Action Controls -->
                         <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-700 flex flex-col justify-center space-y-2">
                             <button @click="resetScores" class="w-full bg-red-600/80 hover:bg-red-600 py-1.5 rounded-lg text-xs font-semibold">Reset Leaderboard & Scores</button>
                         </div>
@@ -284,9 +273,6 @@
                         <input type="text" x-model="newQ.text" placeholder="Enter question..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm">
                     </div>
 
-                    <!-- Category Specific Fields -->
-
-                    <!-- Multiple Choice Options -->
                     <template x-if="newQ.type === 'mc'">
                         <div class="space-y-3">
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -306,7 +292,6 @@
                         </div>
                     </template>
 
-                    <!-- True / False Options -->
                     <template x-if="newQ.type === 'tf'">
                         <div>
                             <label class="block text-xs text-slate-400 mb-1">Correct Answer</label>
@@ -317,16 +302,13 @@
                         </div>
                     </template>
 
-                    <!-- Identification Valid Answers List -->
                     <template x-if="newQ.type === 'identification'">
                         <div>
                             <label class="block text-xs text-slate-400 mb-1">Valid Answers (Comma Separated)</label>
                             <input type="text" x-model="newQ.validAnswers" placeholder="e.g. Paris, paris, Capital of France" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm">
-                            <p class="text-[10px] text-slate-400 mt-1">Answers match case-insensitively.</p>
                         </div>
                     </template>
 
-                    <!-- Ordering Sequence Correct Answers -->
                     <template x-if="newQ.type === 'order'">
                         <div class="space-y-2">
                             <label class="block text-xs text-slate-400">Enter Items in CORRECT Sequence (1 per line):</label>
@@ -339,7 +321,10 @@
 
                 <!-- Saved Question Bank -->
                 <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl space-y-4">
-                    <h3 class="text-lg font-bold text-indigo-400 border-b border-slate-700 pb-2">📚 Question Bank</h3>
+                    <div class="flex justify-between items-center border-b border-slate-700 pb-2">
+                        <h3 class="text-lg font-bold text-indigo-400">📚 Question Bank</h3>
+                        <button @click="clearActiveQuestion" x-show="activeQuestion" class="bg-amber-600/80 hover:bg-amber-600 text-xs px-3 py-1.5 rounded-lg font-bold transition">Stop / Clear Current Active Question</button>
+                    </div>
                     
                     <div class="space-y-3">
                         <template x-for="(q, idx) in questionBank" :key="q.id">
@@ -363,12 +348,12 @@
 
                 <!-- Live Participant Tracking Monitor -->
                 <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl space-y-4">
-                    <h3 class="text-lg font-bold text-indigo-400 border-b border-slate-700 pb-2">👥 Participant Stats</h3>
+                    <h3 class="text-lg font-bold text-indigo-400 border-b border-slate-700 pb-2">👥 Participant Stats & Monitoring</h3>
                     <div class="overflow-x-auto">
                         <table class="w-full text-left text-xs">
                             <thead class="bg-slate-900 text-slate-400">
                                 <tr>
-                                    <th class="p-2.5">Participant</th>
+                                    <th class="p-2.5">Participant Name</th>
                                     <th class="p-2.5">Score</th>
                                     <th class="p-2.5">Wrong Answers</th>
                                     <th class="p-2.5">Status</th>
@@ -383,6 +368,11 @@
                                         <td class="p-2.5">
                                             <span :class="data.eliminated ? 'bg-red-950 text-red-400 border-red-800' : 'bg-emerald-950 text-emerald-400 border-emerald-800'" class="px-2 py-0.5 border rounded text-[10px] font-bold" x-text="data.eliminated ? 'Eliminated' : 'Active'"></span>
                                         </td>
+                                    </tr>
+                                </template>
+                                <template x-if="Object.keys(scores).length === 0">
+                                    <tr>
+                                        <td colspan="4" class="text-center py-4 text-slate-500">No participants have joined yet.</td>
                                     </tr>
                                 </template>
                             </tbody>
@@ -403,14 +393,12 @@
                 participantName: localStorage.getItem('qa_participant') || '',
                 tempName: '',
                 
-                // Question Bank & Active State
                 questionBank: JSON.parse(localStorage.getItem('qa_bank') || '[]'),
                 activeQuestion: JSON.parse(localStorage.getItem('qa_active') || 'null'),
                 timer: parseInt(localStorage.getItem('qa_timer') || '0'),
                 scores: JSON.parse(localStorage.getItem('qa_scores') || '{}'),
                 correctCount: parseInt(localStorage.getItem('qa_correct_count') || '0'),
 
-                // Admin Customizations
                 adminSettings: JSON.parse(localStorage.getItem('qa_admin_settings') || JSON.stringify({
                     showImmediateResult: true,
                     showCountOnly: false,
@@ -421,7 +409,6 @@
                     maxWrongAnswers: 3
                 })),
 
-                // Question Creator Form Model
                 newQ: {
                     type: 'mc',
                     text: '',
@@ -433,7 +420,6 @@
                     orderItems: ''
                 },
 
-                // Participant Response State
                 hasSubmitted: false,
                 selectedMcOption: null,
                 identificationInput: '',
@@ -446,23 +432,38 @@
                         this.isAdmin = true;
                     }
 
-                    // Sync state across browsers/tabs
-                    window.addEventListener('storage', (e) => {
-                        if (e.key === 'qa_active') {
-                            this.activeQuestion = JSON.parse(e.newValue);
-                            this.resetParticipantAnswerState();
+                    // Polling data sync every 1 second to update scores, participant lists, and active questions in real time across browser windows/tabs
+                    setInterval(() => {
+                        let storedScores = localStorage.getItem('qa_scores');
+                        if (storedScores) {
+                            let parsed = JSON.parse(storedScores);
+                            if (JSON.stringify(parsed) !== JSON.stringify(this.scores)) {
+                                this.scores = parsed;
+                            }
                         }
-                        if (e.key === 'qa_timer') this.timer = parseInt(e.newValue || '0');
-                        if (e.key === 'qa_scores') this.scores = JSON.parse(e.newValue || '{}');
-                        if (e.key === 'qa_admin_settings') this.adminSettings = JSON.parse(e.newValue);
-                        if (e.key === 'qa_correct_count') this.correctCount = parseInt(e.newValue || '0');
-                    });
 
-                    // Countdown Timer loop
+                        let storedActive = localStorage.getItem('qa_active');
+                        let currentActiveStr = JSON.stringify(this.activeQuestion);
+                        if (storedActive !== currentActiveStr) {
+                            this.activeQuestion = storedActive ? JSON.parse(storedActive) : null;
+                            if (this.activeQuestion) {
+                                this.resetParticipantAnswerState();
+                            }
+                        }
+
+                        let storedTimer = localStorage.getItem('qa_timer');
+                        if (storedTimer !== null) {
+                            this.timer = parseInt(storedTimer);
+                        }
+                    }, 1000);
+
+                    // Countdown Timer loop for admin driver
                     this.timerInterval = setInterval(() => {
                         if (this.timer > 0) {
                             this.timer--;
-                            if (this.isAdmin) localStorage.setItem('qa_timer', this.timer.toString());
+                            if (this.isAdmin) {
+                                localStorage.setItem('qa_timer', this.timer.toString());
+                            }
                         }
                     }, 1000);
 
@@ -504,8 +505,12 @@
 
                     if (!this.scores[this.participantName]) {
                         this.scores[this.participantName] = { score: 0, wrongCount: 0, eliminated: false };
-                        this.saveScores();
+                    } else {
+                        // Ensure property exists if re-joining
+                        if (this.scores[this.participantName].score === undefined) this.scores[this.participantName].score = 0;
+                        if (this.scores[this.participantName].wrongCount === undefined) this.scores[this.participantName].wrongCount = 0;
                     }
+                    this.saveScores();
                 },
 
                 resetParticipant() {
@@ -537,6 +542,7 @@
                         q.validAnswers = this.newQ.validAnswers.split(',').map(s => s.trim().toLowerCase());
                     } else if (q.type === 'order') {
                         q.correctOrder = this.newQ.orderItems.split('\n').map(s => s.trim()).filter(s => s.length > 0);
+                        if (q.correctOrder.length < 2) return alert("Please provide at least 2 items for ordering.");
                     }
 
                     this.questionBank.push(q);
@@ -559,7 +565,15 @@
                     localStorage.setItem('qa_correct_count', '0');
                     
                     this.resetParticipantAnswerState();
-                    alert("Question published!");
+                    alert("Question published successfully to all participants!");
+                },
+
+                clearActiveQuestion() {
+                    this.activeQuestion = null;
+                    this.timer = 0;
+                    localStorage.removeItem('qa_active');
+                    localStorage.removeItem('qa_timer');
+                    alert("Active question cleared.");
                 },
 
                 resetParticipantAnswerState() {
@@ -571,7 +585,6 @@
 
                 initOrderItems() {
                     if (this.activeQuestion && this.activeQuestion.type === 'order') {
-                        // Shuffle items for participant view
                         this.userOrder = [...this.activeQuestion.correctOrder].sort(() => Math.random() - 0.5);
                     }
                 },
@@ -608,7 +621,6 @@
                     this.hasSubmitted = true;
                     this.lastAnswerCorrect = isCorrect;
 
-                    // Update Score Record
                     if (!this.scores[this.participantName]) {
                         this.scores[this.participantName] = { score: 0, wrongCount: 0, eliminated: false };
                     }
@@ -634,7 +646,7 @@
                 },
 
                 resetScores() {
-                    if (confirm("Reset all leaderboard scores and participant status?")) {
+                    if (confirm("Reset all leaderboard scores and participant statuses?")) {
                         this.scores = {};
                         this.saveScores();
                     }
