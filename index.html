@@ -3,852 +3,654 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AURA // Futuristic Quiz Platform v4.0</title>
-    <!-- Tailwind CSS -->
+    <title>Advanced Interactive Quiz Arena</title>
+    <!-- Tailwind CSS for modern responsive UI -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- QR Code Generator -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;800;900&family=Rajdhani:wght@400;500;600;700&display=swap" rel="stylesheet">
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        cyber: {
-                            black: '#030712',
-                            card: 'rgba(15, 23, 42, 0.75)',
-                            cyan: '#00f0ff',
-                            magenta: '#ff007f',
-                            purple: '#7000ff',
-                            gold: '#ffd700',
-                            green: '#00ff66'
-                        }
-                    },
-                    fontFamily: {
-                        orbitron: ['Orbitron', 'sans-serif'],
-                        rajdhani: ['Rajdhani', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-
+    <!-- Alpine.js for reactive state management -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <style>
-        body {
-            background-color: #030712;
-            color: #f3f4f6;
-            font-family: 'Rajdhani', sans-serif;
-            overflow-x: hidden;
-        }
-
-        /* Animated 3D Cyber Grid Background */
-        .bg-grid {
-            background-size: 40px 40px;
-            background-image: 
-                linear-gradient(to right, rgba(0, 240, 255, 0.05) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(0, 240, 255, 0.05) 1px, transparent 1px);
-            transform: perspective(500px) rotateX(45deg) scale(2);
-            transform-origin: top center;
-            position: absolute;
-            inset: 0;
-            z-index: 0;
-            animation: grid-move 20s linear infinite;
-        }
-
-        @keyframes grid-move {
-            0% { background-position: 0 0; }
-            100% { background-position: 0 40px; }
-        }
-
-        /* 3D Glassmorphism Card Style */
-        .glass-card {
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(16px);
-            border: 1px solid rgba(0, 240, 255, 0.2);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8),
-                        inset 0 0 15px rgba(0, 240, 255, 0.1);
-            border-radius: 1rem;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .glass-card:hover {
-            border-color: rgba(0, 240, 255, 0.5);
-            box-shadow: 0 20px 60px rgba(0, 240, 255, 0.2),
-                        inset 0 0 25px rgba(0, 240, 255, 0.2);
-        }
-
-        /* Futuristic Neon Glows */
-        .glow-cyan { text-shadow: 0 0 10px rgba(0, 240, 255, 0.7), 0 0 20px rgba(0, 240, 255, 0.5); }
-        .glow-magenta { text-shadow: 0 0 10px rgba(255, 0, 127, 0.7), 0 0 20px rgba(255, 0, 127, 0.5); }
-
-        /* Cyberpunk Buttons */
-        .btn-cyber-cyan {
-            background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(112, 0, 255, 0.4));
-            border: 1px solid #00f0ff;
-            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
-            transition: all 0.2s ease;
-        }
-        .btn-cyber-cyan:hover {
-            background: linear-gradient(135deg, rgba(0, 240, 255, 0.6), rgba(112, 0, 255, 0.8));
-            box-shadow: 0 0 25px rgba(0, 240, 255, 0.7);
-            transform: scale(1.02);
-        }
-
-        .btn-cyber-magenta {
-            background: linear-gradient(135deg, rgba(255, 0, 127, 0.2), rgba(112, 0, 255, 0.4));
-            border: 1px solid #ff007f;
-            box-shadow: 0 0 15px rgba(255, 0, 127, 0.3);
-            transition: all 0.2s ease;
-        }
-        .btn-cyber-magenta:hover {
-            background: linear-gradient(135deg, rgba(255, 0, 127, 0.6), rgba(112, 0, 255, 0.8));
-            box-shadow: 0 0 25px rgba(255, 0, 127, 0.7);
-            transform: scale(1.02);
-        }
-
-        .timer-warning {
-            animation: pulse-red 1s infinite alternate;
-        }
-        @keyframes pulse-red {
-            0% { color: #00f0ff; text-shadow: 0 0 5px #00f0ff; }
-            100% { color: #ff007f; text-shadow: 0 0 20px #ff007f; }
-        }
-
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #030712; }
-        ::-webkit-scrollbar-thumb { background: #00f0ff; border-radius: 3px; }
+        .ghost { opacity: 0.4; }
+        .drag-item { cursor: grab; }
+        .drag-item:active { cursor: grabbing; }
     </style>
 </head>
-<body class="min-h-screen relative flex flex-col justify-between">
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans" x-data="quizApp()">
 
-    <!-- Background Accents -->
-    <div class="fixed top-0 left-1/4 w-96 h-96 bg-cyber-cyan/10 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="fixed bottom-0 right-1/4 w-96 h-96 bg-cyber-magenta/10 rounded-full blur-3xl pointer-events-none"></div>
-    <div class="bg-grid"></div>
+    <!-- Header / Logo Bar -->
+    <header class="bg-slate-800 border-b border-slate-700 p-4 flex justify-between items-center shadow-lg sticky top-0 z-50">
+        <div class="flex items-center space-x-3">
+            <button @click="handleLogoClick" class="focus:outline-none transform hover:scale-105 transition" title="Tap to login as Admin">
+                <div class="bg-gradient-to-tr from-indigo-600 to-purple-600 text-white font-bold h-10 w-10 rounded-xl flex items-center justify-center shadow-md text-lg">
+                    ⚡
+                </div>
+            </button>
+            <div>
+                <h1 class="text-lg font-bold tracking-wide">Live Quiz Arena</h1>
+                <p class="text-xs text-slate-400" x-text="isAdmin ? 'Mode: Administrator' : 'Mode: Participant'"></p>
+            </div>
+        </div>
 
-    <!-- Header Navigation (Hidden automatically if scanned by participant) -->
-    <header id="main-header" class="relative z-10 border-b border-cyber-cyan/20 bg-cyber-black/80 backdrop-blur-md px-6 py-4">
-        <div class="max-w-7xl mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <i class="fa-solid fa-cube text-3xl text-cyber-cyan animate-pulse"></i>
-                <h1 class="font-orbitron text-2xl font-black tracking-wider glow-cyan">
-                    AURA <span class="text-cyber-magenta text-sm tracking-normal">// QUIZ CORE v4.0</span>
-                </h1>
-            </div>
-            
-            <div id="nav-buttons" class="flex items-center gap-4">
-                <button onclick="switchView('admin')" id="nav-admin" class="px-4 py-2 rounded-lg font-semibold border border-cyber-cyan text-cyber-cyan hover:bg-cyber-cyan/20 transition font-orbitron text-sm flex items-center gap-2">
-                    <i class="fa-solid fa-user-gear"></i> Admin Command
-                </button>
-                <button onclick="switchView('participant')" id="nav-participant" class="px-4 py-2 rounded-lg font-semibold border border-cyber-magenta text-cyber-magenta hover:bg-cyber-magenta/20 transition font-orbitron text-sm flex items-center gap-2">
-                    <i class="fa-solid fa-gamepad"></i> Participant Portal
-                </button>
-            </div>
+        <div class="flex items-center space-x-2">
+            <template x-if="isAdmin">
+                <div class="flex items-center space-x-2">
+                    <button @click="currentView = 'participant'" :class="currentView === 'participant' ? 'bg-indigo-600 text-white' : 'bg-slate-700 text-slate-300'" class="px-3 py-1.5 text-xs rounded-lg font-semibold transition">Participant Board</button>
+                    <button @click="currentView = 'admin'" :class="currentView === 'admin' ? 'bg-indigo-600 text-white' : 'bg-slate-700 text-slate-300'" class="px-3 py-1.5 text-xs rounded-lg font-semibold transition">Admin Dashboard</button>
+                    <button @click="logoutAdmin" class="bg-red-600/80 hover:bg-red-600 text-white px-3 py-1.5 text-xs rounded-lg font-semibold transition">Logout</button>
+                </div>
+            </template>
+            <template x-if="!isAdmin && participantName">
+                <button @click="resetParticipant" class="bg-slate-700 hover:bg-slate-600 px-3 py-1.5 text-xs rounded-lg transition text-slate-300">Change Name</button>
+            </template>
         </div>
     </header>
 
     <!-- Main Container -->
-    <main class="relative z-10 max-w-7xl mx-auto w-full p-4 md:p-6 flex-grow">
+    <main class="flex-grow p-4 max-w-5xl w-full mx-auto flex flex-col justify-center">
 
-        <!-- ==================================================================== -->
-        <!--                             ADMIN VIEW                               -->
-        <!-- ==================================================================== -->
-        <div id="view-admin" class="space-y-8">
-            
-            <div class="glass-card p-6 flex flex-wrap items-center justify-between gap-6 border-l-4 border-l-cyber-cyan">
-                <div>
-                    <h2 class="font-orbitron text-xl font-bold text-cyber-cyan flex items-center gap-2">
-                        <i class="fa-solid fa-sliders"></i> SYSTEM BROADCAST & TIMER CONTROLS
-                    </h2>
-                    <p class="text-gray-400 text-sm">Manage dynamic response visibility, score visibility, and live countdown timers.</p>
-                </div>
+        <!-- 1. Participant Registration Modal -->
+        <template x-if="!isAdmin && !participantName">
+            <div class="bg-slate-800 border border-slate-700 p-8 rounded-2xl shadow-2xl max-w-md mx-auto text-center w-full">
+                <div class="text-4xl mb-3">🎮</div>
+                <h2 class="text-2xl font-bold mb-2">Join Quiz Session</h2>
+                <p class="text-sm text-slate-400 mb-6">Enter your display name to participate.</p>
+                <input type="text" x-model="tempName" @keyup.enter="joinAsParticipant" placeholder="Your Name..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 mb-4 focus:outline-none focus:border-indigo-500">
+                <button @click="joinAsParticipant" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-3 rounded-xl transition shadow-lg">Enter Arena</button>
+            </div>
+        </template>
 
-                <div class="flex flex-wrap items-center gap-6">
-                    <div class="flex items-center gap-2 bg-cyber-black/60 border border-cyber-cyan/30 rounded px-3 py-1.5">
-                        <i class="fa-solid fa-stopwatch text-cyber-cyan"></i>
-                        <span class="text-xs font-orbitron text-gray-300">GLOBAL TIMER:</span>
-                        <input type="number" id="global-timer-input" value="30" min="5" max="300" onchange="updateGlobalTimer()"
-                            class="w-16 bg-cyber-black text-center border border-cyber-cyan/50 text-cyber-cyan font-bold font-orbitron text-sm rounded focus:outline-none">
-                        <span class="text-xs text-gray-400">sec</span>
+        <!-- KICKED OUT SCREEN -->
+        <template x-if="isEliminated && !isAdmin">
+            <div class="bg-red-950/40 border border-red-800 p-8 rounded-2xl shadow-2xl max-w-md mx-auto text-center space-y-4">
+                <div class="text-5xl">❌</div>
+                <h2 class="text-2xl font-bold text-red-400">You Have Been Eliminated</h2>
+                <p class="text-sm text-slate-300">You exceeded the maximum allowed wrong answers set by the administrator.</p>
+            </div>
+        </template>
+
+        <!-- 2. Participant View -->
+        <template x-if="(isAdmin || participantName) && (!isEliminated || isAdmin) && (currentView === 'participant' || !isAdmin)">
+            <div class="space-y-6 w-full">
+                
+                <!-- Active Published Question -->
+                <template x-if="activeQuestion">
+                    <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl space-y-6">
+                        <div class="flex justify-between items-center border-b border-slate-700/60 pb-4">
+                            <span class="text-xs uppercase tracking-wider bg-indigo-500/20 text-indigo-400 px-3 py-1 rounded-md font-bold" x-text="activeQuestion.type"></span>
+                            <span class="text-sm font-mono font-bold" :class="timer <= 5 ? 'text-red-400 animate-pulse' : 'text-amber-400'" x-text="timer > 0 ? `⏳ ${timer}s remaining` : '⏰ Time Ended!'"></span>
+                        </div>
+
+                        <h3 class="text-xl font-bold text-slate-100" x-text="activeQuestion.text"></h3>
+
+                        <!-- QUESTION TYPES RENDERING -->
+
+                        <!-- Multiple Choice / True-False -->
+                        <template x-if="['mc', 'tf'].includes(activeQuestion.type)">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <template x-for="(opt, idx) in activeQuestion.options" :key="idx">
+                                    <button @click="selectMcOption(idx)" 
+                                        :disabled="hasSubmitted || timer <= 0"
+                                        :class="{
+                                            'bg-slate-700 hover:bg-slate-600 border-slate-600': !hasSubmitted && timer > 0,
+                                            'bg-indigo-600 border-indigo-500 text-white': selectedMcOption === idx,
+                                            'opacity-50 cursor-not-allowed': hasSubmitted || timer <= 0
+                                        }"
+                                        class="border p-4 rounded-xl text-left font-semibold transition flex justify-between items-center" x-text="opt">
+                                    </button>
+                                </template>
+                            </div>
+                        </template>
+
+                        <!-- Identification -->
+                        <template x-if="activeQuestion.type === 'identification'">
+                            <div class="space-y-3">
+                                <input type="text" x-model="identificationInput" :disabled="hasSubmitted || timer <= 0" placeholder="Type your answer here..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 focus:outline-none focus:border-indigo-500 disabled:opacity-50">
+                            </div>
+                        </template>
+
+                        <!-- Order / Sequence (Interactive Drag/Move List) -->
+                        <template x-if="activeQuestion.type === 'order'">
+                            <div class="space-y-2">
+                                <p class="text-xs text-slate-400 mb-2">Arrange items in correct order using ▲ / ▼ arrows:</p>
+                                <template x-for="(item, idx) in userOrder" :key="idx">
+                                    <div class="flex items-center justify-between bg-slate-900 border border-slate-700 p-3 rounded-xl">
+                                        <span class="font-medium text-sm" x-text="`${idx + 1}. ${item}`"></span>
+                                        <div class="flex space-x-1" x-show="!hasSubmitted && timer > 0">
+                                            <button @click="moveOrder(idx, -1)" :disabled="idx === 0" class="px-2 py-1 bg-slate-700 rounded hover:bg-slate-600 text-xs disabled:opacity-30">▲</button>
+                                            <button @click="moveOrder(idx, 1)" :disabled="idx === userOrder.length - 1" class="px-2 py-1 bg-slate-700 rounded hover:bg-slate-600 text-xs disabled:opacity-30">▼</button>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+
+                        <!-- Submit Button -->
+                        <template x-if="!hasSubmitted">
+                            <button @click="submitAnswer" :disabled="timer <= 0" class="w-full bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 font-bold py-3 rounded-xl transition shadow-lg">Submit Answer</button>
+                        </template>
+
+                        <!-- Feedback Settings Applied -->
+                        <template x-if="hasSubmitted">
+                            <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700 text-center space-y-2">
+                                <p class="text-emerald-400 font-bold text-sm">✓ Answer Submitted!</p>
+                                
+                                <template x-if="adminSettings.showImmediateResult">
+                                    <p class="font-semibold text-md" :class="lastAnswerCorrect ? 'text-emerald-400' : 'text-red-400'" x-text="lastAnswerCorrect ? '🎉 Correct Answer!' : '❌ Incorrect Answer!'"></p>
+                                </template>
+
+                                <template x-if="!adminSettings.showImmediateResult">
+                                    <p class="text-xs text-slate-400 italic">Results hidden by administrator.</p>
+                                </template>
+                            </div>
+                        </template>
+
+                        <!-- Show count of participants with correct answers if enabled by admin -->
+                        <template x-if="adminSettings.showCountOnly">
+                            <div class="bg-indigo-950/40 border border-indigo-800/60 p-3 rounded-xl text-center">
+                                <p class="text-xs text-indigo-300">Total Participants Correct: <span class="font-bold text-sm text-indigo-200" x-text="correctCount"></span></p>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+
+                <template x-if="!activeQuestion">
+                    <div class="bg-slate-800 border border-slate-700 p-12 rounded-2xl shadow-xl text-center space-y-3">
+                        <div class="text-4xl">⏳</div>
+                        <h3 class="text-lg font-bold">Waiting for Next Question</h3>
+                        <p class="text-sm text-slate-400">The administrator will publish a question shortly.</p>
+                    </div>
+                </template>
+
+                <!-- Scoreboard Card -->
+                <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl space-y-4">
+                    <div class="flex justify-between items-center">
+                        <h4 class="font-bold text-md flex items-center space-x-2">
+                            <span>🏆 Leaderboard</span>
+                        </h4>
+                        <span class="text-xs text-slate-400" x-text="adminSettings.showScoreboard ? (adminSettings.maskNames ? 'Anonymized View' : 'Full Names View') : 'Hidden by Admin'"></span>
                     </div>
 
-                    <label class="flex items-center gap-3 cursor-pointer">
-                        <span class="text-xs font-semibold">Instant Feedback:</span>
-                        <input type="checkbox" id="toggle-instant-feedback" class="sr-only peer" onchange="updateSettings()">
-                        <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyber-cyan relative"></div>
-                    </label>
+                    <template x-if="adminSettings.showScoreboard || isAdmin">
+                        <div class="space-y-2">
+                            <template x-for="(scoreData, name) in scores" :key="name">
+                                <div class="flex justify-between items-center bg-slate-900 px-4 py-2.5 rounded-xl border border-slate-800">
+                                    <span class="font-semibold text-sm" x-text="formatName(name)"></span>
+                                    <span class="font-mono font-bold text-indigo-400" x-text="scoreData.score + ' pts'"></span>
+                                </div>
+                            </template>
+                            <template x-if="Object.keys(scores).length === 0">
+                                <p class="text-sm text-slate-500 text-center py-2">No scores recorded yet.</p>
+                            </template>
+                        </div>
+                    </template>
 
-                    <label class="flex items-center gap-3 cursor-pointer">
-                        <span class="text-xs font-semibold">Reveal Scoreboard:</span>
-                        <input type="checkbox" id="toggle-reveal-scores" class="sr-only peer" onchange="updateSettings()">
-                        <div class="w-9 h-5 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-cyber-magenta relative"></div>
-                    </label>
-
-                    <button onclick="openQRModal()" class="btn-cyber-cyan px-3 py-1.5 rounded text-xs font-orbitron font-bold text-white flex items-center gap-2">
-                        <i class="fa-solid fa-qrcode"></i> QR Access Code
-                    </button>
+                    <template x-if="!adminSettings.showScoreboard && !isAdmin">
+                        <p class="text-sm text-slate-500 italic text-center py-4">Scoreboard is currently hidden by the administrator.</p>
+                    </template>
                 </div>
             </div>
+        </template>
 
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- 3. Admin Dashboard View -->
+        <template x-if="isAdmin && currentView === 'admin'">
+            <div class="space-y-8 w-full py-4">
                 
-                <div class="lg:col-span-5 space-y-6">
-                    <div class="glass-card p-6 border-t-2 border-t-cyber-cyan">
-                        <h3 class="font-orbitron text-lg font-bold text-cyber-cyan mb-4 flex items-center gap-2">
-                            <i class="fa-solid fa-plus-circle"></i> CREATE QUESTION MODULE
-                        </h3>
-
-                        <form id="question-form" onsubmit="saveQuestion(event)" class="space-y-4">
+                <!-- Admin Control Panel for Display & Feedback Settings -->
+                <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl space-y-4">
+                    <h3 class="text-lg font-bold text-indigo-400 border-b border-slate-700 pb-2">⚙️ Admin Live Controls</h3>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 text-xs">
+                        <!-- Toggle Correct/Wrong Feedback -->
+                        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-700 flex justify-between items-center">
                             <div>
-                                <label class="block text-xs font-orbitron text-gray-400 mb-1">CATEGORY</label>
-                                <input type="text" id="q-category" required placeholder="e.g. Cybernetics, Quantum, History" 
-                                    class="w-full bg-cyber-black/80 border border-cyber-cyan/30 rounded px-3 py-2 text-sm focus:outline-none focus:border-cyber-cyan text-white">
+                                <p class="font-bold">Show Immediate Answer Feedback</p>
+                                <p class="text-slate-400 text-[10px]">Let participants know if answer was right/wrong</p>
                             </div>
+                            <input type="checkbox" x-model="adminSettings.showImmediateResult" @change="saveAdminSettings" class="h-4 w-4 rounded accent-indigo-600">
+                        </div>
 
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-xs font-orbitron text-gray-400 mb-1">QUESTION TYPE</label>
-                                    <select id="q-type" onchange="renderAnswerInputs()" class="w-full bg-cyber-black/80 border border-cyber-cyan/30 rounded px-3 py-2 text-sm focus:outline-none focus:border-cyber-cyan text-white">
-                                        <option value="mc">Multiple Choice</option>
-                                        <option value="tf">True / False</option>
-                                        <option value="yn">Yes / No</option>
-                                        <option value="id">Identification</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-orbitron text-gray-400 mb-1">TIMER (SECONDS)</label>
-                                    <input type="number" id="q-timer" min="5" max="300" placeholder="Use Global" 
-                                        class="w-full bg-cyber-black/80 border border-cyber-cyan/30 rounded px-3 py-2 text-sm focus:outline-none focus:border-cyber-cyan text-white">
-                                </div>
-                            </div>
-
+                        <!-- Toggle Count Only -->
+                        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-700 flex justify-between items-center">
                             <div>
-                                <label class="block text-xs font-orbitron text-gray-400 mb-1">QUESTION STATEMENT</label>
-                                <textarea id="q-text" rows="3" required placeholder="Enter query statement..." 
-                                    class="w-full bg-cyber-black/80 border border-cyber-cyan/30 rounded px-3 py-2 text-sm focus:outline-none focus:border-cyber-cyan text-white"></textarea>
+                                <p class="font-bold">Show Correct Count Only</p>
+                                <p class="text-slate-400 text-[10px]">Displays total number of correct participants</p>
                             </div>
+                            <input type="checkbox" x-model="adminSettings.showCountOnly" @change="saveAdminSettings" class="h-4 w-4 rounded accent-indigo-600">
+                        </div>
 
-                            <div id="dynamic-answer-container" class="space-y-3 p-3 bg-cyber-black/40 rounded border border-gray-800"></div>
+                        <!-- Toggle Scoreboard Visibility -->
+                        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-700 flex justify-between items-center">
+                            <div>
+                                <p class="font-bold">Show Scoreboard</p>
+                                <p class="text-slate-400 text-[10px]">Make leaderboard visible to all</p>
+                            </div>
+                            <input type="checkbox" x-model="adminSettings.showScoreboard" @change="saveAdminSettings" class="h-4 w-4 rounded accent-indigo-600">
+                        </div>
 
-                            <button type="submit" class="w-full btn-cyber-cyan py-3 rounded-lg font-orbitron font-bold text-white tracking-widest text-sm flex items-center justify-center gap-2">
-                                <i class="fa-solid fa-save"></i> SAVE QUESTION TO BANK
-                            </button>
-                        </form>
-                    </div>
-                </div>
+                        <!-- Scoreboard Masking Settings -->
+                        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-700 space-y-2">
+                            <div class="flex justify-between items-center">
+                                <p class="font-bold">Anonymize / Mask Names</p>
+                                <input type="checkbox" x-model="adminSettings.maskNames" @change="saveAdminSettings" class="h-4 w-4 rounded accent-indigo-600">
+                            </div>
+                            <select x-model="adminSettings.maskMode" @change="saveAdminSettings" :disabled="!adminSettings.maskNames" class="w-full bg-slate-800 border border-slate-700 rounded-lg p-1.5 text-xs">
+                                <option value="questionMarks">Mask with '??'</option>
+                                <option value="initial">Initial Letter Only (e.g. A***)</option>
+                                <option value="firstTwo">First 2 Letters (e.g. Ed***)</option>
+                                <option value="lengthOnly">Name Length (e.g. 6 letters)</option>
+                            </select>
+                        </div>
 
-                <div class="lg:col-span-7 space-y-6">
-                    <div class="glass-card p-6 border-t-2 border-t-cyber-magenta">
-                        <div class="flex flex-wrap justify-between items-center gap-4 mb-6">
-                            <h3 class="font-orbitron text-lg font-bold text-cyber-magenta flex items-center gap-2">
-                                <i class="fa-solid fa-database"></i> QUESTION BANK (<span id="question-count">0</span>)
-                            </h3>
-
-                            <div class="flex flex-wrap gap-2">
-                                <button onclick="startAutoOneByOneSequence()" class="btn-cyber-magenta px-3 py-1.5 rounded text-xs font-orbitron font-bold text-white flex items-center gap-1 animate-pulse">
-                                    <i class="fa-solid fa-play"></i> Auto Send 1-by-1
-                                </button>
-                                <button onclick="publishAllQuestions()" class="bg-gray-800 hover:bg-gray-700 border border-cyber-cyan/30 text-cyber-cyan px-3 py-1.5 rounded text-xs font-orbitron flex items-center gap-1">
-                                    <i class="fa-solid fa-tower-broadcast"></i> Publish All
-                                </button>
-                                <button onclick="unpublishAllQuestions()" class="bg-gray-800 hover:bg-gray-700 text-gray-300 px-3 py-1.5 rounded text-xs font-orbitron flex items-center gap-1">
-                                    <i class="fa-solid fa-eye-slash"></i> Hide All
-                                </button>
+                        <!-- Auto-Elimination Settings -->
+                        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-700 space-y-2">
+                            <div class="flex justify-between items-center">
+                                <p class="font-bold">Auto-Eliminate Participants</p>
+                                <input type="checkbox" x-model="adminSettings.autoEliminate" @change="saveAdminSettings" class="h-4 w-4 rounded accent-indigo-600">
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <span class="text-slate-400 text-[10px]">Max Wrong Answers:</span>
+                                <input type="number" min="1" max="10" x-model.number="adminSettings.maxWrongAnswers" @change="saveAdminSettings" class="w-16 bg-slate-800 border border-slate-700 rounded p-1 text-xs">
                             </div>
                         </div>
 
-                        <div id="active-broadcast-status" class="hidden mb-6 p-4 bg-cyber-magenta/10 border border-cyber-magenta rounded-lg flex justify-between items-center">
-                            <div>
-                                <span class="text-xs font-orbitron text-cyber-magenta font-bold flex items-center gap-2">
-                                    <i class="fa-solid fa-satellite-dish animate-spin"></i> LIVE SEQUENCER ACTIVE
-                                </span>
-                                <p id="broadcast-question-title" class="text-sm font-bold text-white mt-1">...</p>
-                            </div>
-                            <div class="text-right">
-                                <span class="text-xs font-orbitron text-gray-400">TIME REMAINING</span>
-                                <p id="broadcast-timer-count" class="text-2xl font-black font-orbitron text-cyber-cyan">0s</p>
-                            </div>
+                        <!-- Action Controls -->
+                        <div class="bg-slate-900 p-3.5 rounded-xl border border-slate-700 flex flex-col justify-center space-y-2">
+                            <button @click="resetScores" class="w-full bg-red-600/80 hover:bg-red-600 py-1.5 rounded-lg text-xs font-semibold">Reset Leaderboard & Scores</button>
                         </div>
-
-                        <div id="question-list" class="space-y-4 max-h-[600px] overflow-y-auto pr-2"></div>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- ==================================================================== -->
-        <!--                         PARTICIPANT VIEW                             -->
-        <!-- ==================================================================== -->
-        <div id="view-participant" class="hidden max-w-3xl mx-auto space-y-6">
-            
-            <div id="participant-login-card" class="glass-card p-8 text-center space-y-6 border-t-2 border-t-cyber-cyan">
-                <i class="fa-solid fa-id-card-clip text-5xl text-cyber-cyan animate-bounce"></i>
-                <div>
-                    <h2 class="font-orbitron text-2xl font-black text-white">ENTER PARTICIPANT CALLSIGN</h2>
-                    <p class="text-gray-400 text-sm mt-1">Enter your full name or handle to sync with the live quiz stream.</p>
-                </div>
-                <div class="max-w-md mx-auto space-y-4">
-                    <input type="text" id="participant-name" placeholder="Enter Name / Callsign..." 
-                        class="w-full bg-cyber-black border border-cyber-cyan/50 rounded-lg px-4 py-3 text-center text-lg font-bold text-cyber-cyan focus:outline-none focus:border-cyber-cyan focus:ring-2 focus:ring-cyber-cyan/50">
-                    <button onclick="startParticipantSession()" class="w-full btn-cyber-cyan py-3 rounded-lg font-orbitron font-bold text-white tracking-widest text-lg flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-bolt"></i> CONNECT TO LIVE STREAM
-                    </button>
-                </div>
-            </div>
-
-            <div id="participant-active-quiz" class="hidden space-y-6">
-                
-                <div class="glass-card p-4 flex justify-between items-center border-l-4 border-l-cyber-cyan">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 rounded-full bg-cyber-cyan/20 border border-cyber-cyan flex items-center justify-center text-cyber-cyan font-bold">
-                            <i class="fa-solid fa-user"></i>
+                <!-- Create & Add Question to Bank -->
+                <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl space-y-4">
+                    <h3 class="text-lg font-bold text-indigo-400 border-b border-slate-700 pb-2">➕ Question Builder</h3>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Question Category / Type</label>
+                            <select x-model="newQ.type" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-sm">
+                                <option value="mc">Multiple Choice</option>
+                                <option value="tf">True or False</option>
+                                <option value="identification">Identification (Short Answer)</option>
+                                <option value="order">Ordering / Sequence</option>
+                            </select>
                         </div>
                         <div>
-                            <p class="text-xs text-gray-400 font-orbitron">PARTICIPANT CONNECTED</p>
-                            <p id="display-user-name" class="font-bold text-white text-lg">---</p>
+                            <label class="block text-xs text-slate-400 mb-1">Question Timer (Seconds)</label>
+                            <input type="number" x-model.number="newQ.timer" min="5" max="300" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm">
                         </div>
                     </div>
 
-                    <div id="participant-score-box" class="bg-cyber-black/80 border border-cyber-magenta/40 px-4 py-2 rounded-lg text-right">
-                        <p class="text-xs text-cyber-magenta font-orbitron font-bold">SCOREBOARD</p>
-                        <p id="display-user-score" class="text-xl font-black text-white">-- / --</p>
+                    <div>
+                        <label class="block text-xs text-slate-400 mb-1">Question Prompt</label>
+                        <input type="text" x-model="newQ.text" placeholder="Enter question..." class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm">
                     </div>
-                </div>
 
-                <div id="published-questions-container" class="space-y-6"></div>
-            </div>
-        </div>
+                    <!-- Category Specific Fields -->
 
-    </main>
-
-    <!-- Footer -->
-    <footer class="relative z-10 border-t border-cyber-cyan/10 bg-cyber-black/90 py-4 text-center text-xs text-gray-500 font-orbitron">
-        AURA QUIZ ENGINE v4.0 // HIGH-TECH INTERACTIVE SYSTEM
-    </footer>
-
-    <!-- QR CODE MODAL -->
-    <div id="qr-modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
-        <div class="glass-card p-8 max-w-sm w-full text-center space-y-6 border-2 border-cyber-cyan relative">
-            <button onclick="closeQRModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl">
-                <i class="fa-solid fa-xmark"></i>
-            </button>
-            <h3 class="font-orbitron text-lg font-bold text-cyber-cyan">PARTICIPANT ACCESS QR</h3>
-            <p class="text-xs text-gray-400">Scan QR code with mobile camera to join directly as a participant.</p>
-            <div class="bg-white p-4 rounded-xl inline-block mx-auto" id="qrcode"></div>
-            <p class="text-xs font-mono text-cyber-cyan break-all" id="qr-link-text"></p>
-            <button onclick="closeQRModal()" class="w-full btn-cyber-cyan py-2 rounded font-orbitron text-sm font-bold text-white">CLOSE</button>
-        </div>
-    </div>
-
-    <!-- ==================================================================== -->
-    <!--                           JAVASCRIPT LOGIC                           -->
-    <!-- ==================================================================== -->
-    <script>
-        let state = {
-            settings: {
-                globalTimer: 30,
-                instantFeedback: true,
-                revealScores: true
-            },
-            questions: [],
-            participant: {
-                name: '',
-                answers: {},
-                scores: {}
-            }
-        };
-
-        let liveTimerInterval = null;
-        let activeSequencerIndex = -1;
-
-        window.addEventListener('DOMContentLoaded', () => {
-            loadState();
-            renderAnswerInputs();
-            renderAdminQuestionList();
-            syncSettingsUI();
-
-            // Detect if participant scanned the QR code (URL contains #participant)
-            if (window.location.hash === '#participant') {
-                // Hide admin navigation and header branding for clean participant view
-                document.getElementById('main-header').style.display = 'none';
-                switchView('participant');
-            } else {
-                switchView('admin');
-            }
-
-            setInterval(() => {
-                if (document.getElementById('view-participant').classList.contains('hidden') === false) {
-                    renderParticipantPortal();
-                }
-            }, 1000);
-        });
-
-        function saveState() {
-            localStorage.setItem('aura_quiz_v4_state', JSON.stringify(state));
-        }
-
-        function loadState() {
-            const saved = localStorage.getItem('aura_quiz_v4_state');
-            if (saved) {
-                state = JSON.parse(saved);
-            } else {
-                state.questions = [
-                    {
-                        id: 'q1',
-                        category: 'Cybernetics',
-                        type: 'mc',
-                        question: 'What is the primary function of a quantum neural interface?',
-                        choices: ['Data Processing', 'Synaptic Synchronization', 'Thermal Dissipation', 'Flux Modulation'],
-                        correctAnswer: 'Synaptic Synchronization',
-                        timer: 20,
-                        timeRemaining: 20,
-                        published: false,
-                        isLocked: false
-                    }
-                ];
-                saveState();
-            }
-        }
-
-        function switchView(view) {
-            const adminView = document.getElementById('view-admin');
-            const participantView = document.getElementById('view-participant');
-            const navAdmin = document.getElementById('nav-admin');
-            const navPart = document.getElementById('nav-participant');
-
-            if (view === 'admin') {
-                adminView.classList.remove('hidden');
-                participantView.classList.add('hidden');
-                navAdmin.classList.add('bg-cyber-cyan/20');
-                navPart.classList.remove('bg-cyber-magenta/20');
-            } else {
-                adminView.classList.add('hidden');
-                participantView.classList.remove('hidden');
-                if(navPart) navPart.classList.add('bg-cyber-magenta/20');
-                if(navAdmin) navAdmin.classList.remove('bg-cyber-cyan/20');
-                renderParticipantPortal();
-            }
-        }
-
-        function syncSettingsUI() {
-            document.getElementById('global-timer-input').value = state.settings.globalTimer;
-            document.getElementById('toggle-instant-feedback').checked = state.settings.instantFeedback;
-            document.getElementById('toggle-reveal-scores').checked = state.settings.revealScores;
-        }
-
-        function updateGlobalTimer() {
-            state.settings.globalTimer = parseInt(document.getElementById('global-timer-input').value) || 30;
-            saveState();
-        }
-
-        function updateSettings() {
-            state.settings.instantFeedback = document.getElementById('toggle-instant-feedback').checked;
-            state.settings.revealScores = document.getElementById('toggle-reveal-scores').checked;
-            saveState();
-            renderParticipantPortal();
-        }
-
-        function renderAnswerInputs() {
-            const type = document.getElementById('q-type').value;
-            const container = document.getElementById('dynamic-answer-container');
-            container.innerHTML = '';
-
-            if (type === 'mc') {
-                container.innerHTML = `
-                    <label class="block text-xs font-orbitron text-gray-400">CHOICES & CORRECT ANSWER</label>
-                    ${[0, 1, 2, 3].map(i => `
-                        <div class="flex items-center gap-2">
-                            <input type="radio" name="correct-mc" value="${i}" ${i === 0 ? 'checked' : ''} class="accent-cyber-cyan">
-                            <input type="text" id="mc-choice-${i}" required placeholder="Choice ${i + 1}" class="w-full bg-cyber-black border border-gray-700 rounded px-2 py-1 text-sm text-white">
-                        </div>
-                    `).join('')}
-                `;
-            } else if (type === 'tf') {
-                container.innerHTML = `
-                    <label class="block text-xs font-orbitron text-gray-400">SELECT CORRECT ANSWER</label>
-                    <select id="tf-correct" class="w-full bg-cyber-black border border-gray-700 rounded px-3 py-2 text-sm text-white">
-                        <option value="True">True</option>
-                        <option value="False">False</option>
-                    </select>
-                `;
-            } else if (type === 'yn') {
-                container.innerHTML = `
-                    <label class="block text-xs font-orbitron text-gray-400">SELECT CORRECT ANSWER</label>
-                    <select id="yn-correct" class="w-full bg-cyber-black border border-gray-700 rounded px-3 py-2 text-sm text-white">
-                        <option value="Yes">Yes</option>
-                        <option value="No">No</option>
-                    </select>
-                `;
-            } else if (type === 'id') {
-                container.innerHTML = `
-                    <label class="block text-xs font-orbitron text-gray-400">DIRECT ANSWER KEY</label>
-                    <input type="text" id="id-correct" required placeholder="Exact Answer Key..." class="w-full bg-cyber-black border border-gray-700 rounded px-3 py-2 text-sm text-white">
-                `;
-            }
-        }
-
-        function saveQuestion(e) {
-            e.preventDefault();
-            const category = document.getElementById('q-category').value;
-            const type = document.getElementById('q-type').value;
-            const questionText = document.getElementById('q-text').value;
-            const customTimer = parseInt(document.getElementById('q-timer').value);
-            const qTimer = (!isNaN(customTimer) && customTimer > 0) ? customTimer : state.settings.globalTimer;
-
-            let choices = [];
-            let correctAnswer = '';
-
-            if (type === 'mc') {
-                for (let i = 0; i < 4; i++) {
-                    choices.push(document.getElementById(`mc-choice-${i}`).value);
-                }
-                const selectedRadio = document.querySelector('input[name="correct-mc"]:checked').value;
-                correctAnswer = choices[parseInt(selectedRadio)];
-            } else if (type === 'tf') {
-                choices = ['True', 'False'];
-                correctAnswer = document.getElementById('tf-correct').value;
-            } else if (type === 'yn') {
-                choices = ['Yes', 'No'];
-                correctAnswer = document.getElementById('yn-correct').value;
-            } else if (type === 'id') {
-                choices = [];
-                correctAnswer = document.getElementById('id-correct').value.trim();
-            }
-
-            const newQ = {
-                id: 'q_' + Date.now(),
-                category,
-                type,
-                question: questionText,
-                choices,
-                correctAnswer,
-                timer: qTimer,
-                timeRemaining: qTimer,
-                published: false,
-                isLocked: false
-            };
-
-            state.questions.push(newQ);
-            saveState();
-
-            document.getElementById('question-form').reset();
-            renderAnswerInputs();
-            renderAdminQuestionList();
-        }
-
-        function renderAdminQuestionList() {
-            const list = document.getElementById('question-list');
-            document.getElementById('question-count').innerText = state.questions.length;
-
-            if (state.questions.length === 0) {
-                list.innerHTML = `<p class="text-center text-gray-500 py-8 font-orbitron">NO QUESTIONS CREATED YET.</p>`;
-                return;
-            }
-
-            list.innerHTML = state.questions.map((q, idx) => `
-                <div class="bg-cyber-black/60 border ${q.published ? 'border-cyber-cyan' : 'border-gray-800'} rounded-lg p-4 space-y-3 relative">
-                    <div class="flex justify-between items-start gap-2">
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <span class="text-xs font-orbitron px-2 py-0.5 rounded bg-cyber-purple/40 border border-cyber-purple text-cyber-cyan">
-                                ${q.category}
-                            </span>
-                            <span class="text-xs font-orbitron px-2 py-0.5 rounded bg-gray-800 text-gray-400">
-                                ${q.type.toUpperCase()}
-                            </span>
-                            <span class="text-xs font-orbitron px-2 py-0.5 rounded bg-cyber-black border border-cyber-cyan/40 text-cyber-cyan">
-                                <i class="fa-solid fa-clock"></i> ${q.timer}s
-                            </span>
-                        </div>
-                        
-                        <div class="flex items-center gap-2">
-                            <button onclick="broadcastSingleQuestion('${q.id}')" class="px-2.5 py-1 rounded text-xs font-orbitron font-bold bg-cyber-cyan/20 border border-cyber-cyan text-cyber-cyan hover:bg-cyber-cyan/40">
-                                <i class="fa-solid fa-stopwatch"></i> Launch Timer
-                            </button>
-                            <button onclick="deleteQuestion('${q.id}')" class="text-gray-500 hover:text-cyber-magenta p-1">
-                                <i class="fa-solid fa-trash"></i>
-                            </button>
-                        </div>
-                    </div>
-                    <p class="font-bold text-white text-sm">${idx + 1}. ${q.question}</p>
-                    <div class="text-xs text-gray-400"><span class="text-cyber-cyan">Key:</span> ${q.correctAnswer}</div>
-                </div>
-            `).join('');
-        }
-
-        function deleteQuestion(id) {
-            state.questions = state.questions.filter(q => q.id !== id);
-            saveState();
-            renderAdminQuestionList();
-        }
-
-        function broadcastSingleQuestion(qId) {
-            clearInterval(liveTimerInterval);
-            state.questions.forEach(q => {
-                if (q.id === qId) {
-                    q.published = true;
-                    q.isLocked = false;
-                    q.timeRemaining = q.timer;
-                }
-            });
-            saveState();
-            renderAdminQuestionList();
-            startQuestionCountdown(qId);
-        }
-
-        function startAutoOneByOneSequence() {
-            if (state.questions.length === 0) {
-                alert('Question bank is empty!');
-                return;
-            }
-            activeSequencerIndex = 0;
-            launchSequencerNextQuestion();
-        }
-
-        function launchSequencerNextQuestion() {
-            if (activeSequencerIndex >= state.questions.length) {
-                document.getElementById('active-broadcast-status').classList.add('hidden');
-                alert('All questions have been published!');
-                return;
-            }
-
-            state.questions.forEach(q => q.published = false);
-            const targetQ = state.questions[activeSequencerIndex];
-            targetQ.published = true;
-            targetQ.isLocked = false;
-            targetQ.timeRemaining = targetQ.timer;
-
-            saveState();
-            renderAdminQuestionList();
-
-            const statusCard = document.getElementById('active-broadcast-status');
-            statusCard.classList.remove('hidden');
-            document.getElementById('broadcast-question-title').innerText = `${activeSequencerIndex + 1}. ${targetQ.question}`;
-
-            startQuestionCountdown(targetQ.id, () => {
-                activeSequencerIndex++;
-                launchSequencerNextQuestion();
-            });
-        }
-
-        function startQuestionCountdown(qId, onComplete) {
-            clearInterval(liveTimerInterval);
-            liveTimerInterval = setInterval(() => {
-                const targetQ = state.questions.find(q => q.id === qId);
-                if (!targetQ) {
-                    clearInterval(liveTimerInterval);
-                    return;
-                }
-
-                if (targetQ.timeRemaining > 0) {
-                    targetQ.timeRemaining--;
-                    const counterElem = document.getElementById('broadcast-timer-count');
-                    if(counterElem) counterElem.innerText = `${targetQ.timeRemaining}s`;
-                    saveState();
-                } else {
-                    clearInterval(liveTimerInterval);
-                    targetQ.isLocked = true;
-                    saveState();
-                    renderAdminQuestionList();
-                    if (onComplete) setTimeout(onComplete, 1500);
-                }
-            }, 1000);
-        }
-
-        function publishAllQuestions() {
-            clearInterval(liveTimerInterval);
-            document.getElementById('active-broadcast-status').classList.add('hidden');
-            state.questions.forEach(q => {
-                q.published = true;
-                q.isLocked = false;
-                q.timeRemaining = q.timer;
-            });
-            saveState();
-            renderAdminQuestionList();
-        }
-
-        function unpublishAllQuestions() {
-            clearInterval(liveTimerInterval);
-            document.getElementById('active-broadcast-status').classList.add('hidden');
-            state.questions.forEach(q => q.published = false);
-            saveState();
-            renderAdminQuestionList();
-        }
-
-        function startParticipantSession() {
-            const nameInput = document.getElementById('participant-name').value.trim();
-            if (!nameInput) return;
-
-            state.participant.name = nameInput;
-            saveState();
-
-            document.getElementById('participant-login-card').classList.add('hidden');
-            document.getElementById('participant-active-quiz').classList.remove('hidden');
-            renderParticipantPortal();
-        }
-
-        function renderParticipantPortal() {
-            if (!state.participant.name) return;
-
-            const nameElem = document.getElementById('display-user-name');
-            if(nameElem) nameElem.innerText = state.participant.name;
-
-            const scoreBox = document.getElementById('participant-score-box');
-            if (state.settings.revealScores) {
-                if(scoreBox) scoreBox.classList.remove('hidden');
-                calculateAndDisplayScore();
-            } else {
-                if(scoreBox) scoreBox.classList.add('hidden');
-            }
-
-            const publishedQuestions = state.questions.filter(q => q.published);
-            const container = document.getElementById('published-questions-container');
-            if(!container) return;
-
-            if (publishedQuestions.length === 0) {
-                container.innerHTML = `
-                    <div class="glass-card p-12 text-center space-y-3">
-                        <i class="fa-solid fa-radar text-4xl text-cyber-cyan animate-spin"></i>
-                        <h3 class="font-orbitron text-lg font-bold text-white">AWAITING LIVE BROADCAST</h3>
-                        <p class="text-sm text-gray-400">The administrator has not pushed any live questions yet.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = publishedQuestions.map((q, index) => {
-                const userSubmittedAnswer = state.participant.answers[q.id];
-                const hasAnswered = userSubmittedAnswer !== undefined;
-                const isCorrect = state.participant.scores[q.id];
-                const isTimeExpired = q.timeRemaining <= 0 || q.isLocked;
-
-                return `
-                    <div class="glass-card p-6 space-y-4 border-l-4 ${hasAnswered ? 'border-l-cyber-purple' : 'border-l-cyber-cyan'} relative">
-                        <div class="flex justify-between items-center">
-                            <span class="text-xs font-orbitron px-2 py-0.5 rounded bg-cyber-cyan/10 border border-cyber-cyan/40 text-cyber-cyan">
-                                CATEGORY: ${q.category.toUpperCase()}
-                            </span>
-                            <div class="font-orbitron font-bold text-sm flex items-center gap-2 ${q.timeRemaining <= 5 ? 'timer-warning' : 'text-cyber-cyan'}">
-                                <i class="fa-solid fa-clock"></i>
-                                <span>${isTimeExpired ? 'TIME EXPIRED' : q.timeRemaining + 's'}</span>
+                    <!-- Multiple Choice Options -->
+                    <template x-if="newQ.type === 'mc'">
+                        <div class="space-y-3">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <template x-for="(opt, i) in newQ.options" :key="i">
+                                    <input type="text" x-model="newQ.options[i]" :placeholder="`Option ${i+1}`" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm">
+                                </template>
+                            </div>
+                            <div>
+                                <label class="block text-xs text-slate-400 mb-1">Correct Choice</label>
+                                <select x-model.number="newQ.correctMc" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm">
+                                    <option value="0">Option 1</option>
+                                    <option value="1">Option 2</option>
+                                    <option value="2">Option 3</option>
+                                    <option value="3">Option 4</option>
+                                </select>
                             </div>
                         </div>
+                    </template>
 
-                        <h4 class="text-lg font-bold text-white">${q.question}</h4>
-
-                        <div class="space-y-2">
-                            ${renderParticipantInput(q, hasAnswered || isTimeExpired, userSubmittedAnswer)}
+                    <!-- True / False Options -->
+                    <template x-if="newQ.type === 'tf'">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Correct Answer</label>
+                            <select x-model="newQ.correctTf" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm">
+                                <option value="True">True</option>
+                                <option value="False">False</option>
+                            </select>
                         </div>
+                    </template>
 
-                        ${hasAnswered && state.settings.instantFeedback ? `
-                            <div class="p-3 rounded-lg border text-sm flex items-center justify-between ${isCorrect ? 'bg-green-950/40 border-cyber-green text-cyber-green' : 'bg-rose-950/40 border-cyber-magenta text-cyber-magenta'}">
-                                <div class="flex items-center gap-2">
-                                    <i class="fa-solid ${isCorrect ? 'fa-circle-check' : 'fa-circle-xmark'}"></i>
-                                    <span>${isCorrect ? 'Correct!' : `Incorrect! Correct Key: ${q.correctAnswer}`}</span>
+                    <!-- Identification Valid Answers List -->
+                    <template x-if="newQ.type === 'identification'">
+                        <div>
+                            <label class="block text-xs text-slate-400 mb-1">Valid Answers (Comma Separated)</label>
+                            <input type="text" x-model="newQ.validAnswers" placeholder="e.g. Paris, paris, Capital of France" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-sm">
+                            <p class="text-[10px] text-slate-400 mt-1">Answers match case-insensitively.</p>
+                        </div>
+                    </template>
+
+                    <!-- Ordering Sequence Correct Answers -->
+                    <template x-if="newQ.type === 'order'">
+                        <div class="space-y-2">
+                            <label class="block text-xs text-slate-400">Enter Items in CORRECT Sequence (1 per line):</label>
+                            <textarea x-model="newQ.orderItems" rows="4" placeholder="Step 1&#10;Step 2&#10;Step 3" class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm"></textarea>
+                        </div>
+                    </template>
+
+                    <button @click="saveQuestionToBank" class="w-full bg-indigo-600 hover:bg-indigo-500 font-bold py-2.5 rounded-xl transition">Save to Question Bank</button>
+                </div>
+
+                <!-- Saved Question Bank -->
+                <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl space-y-4">
+                    <h3 class="text-lg font-bold text-indigo-400 border-b border-slate-700 pb-2">📚 Question Bank</h3>
+                    
+                    <div class="space-y-3">
+                        <template x-for="(q, idx) in questionBank" :key="q.id">
+                            <div class="bg-slate-900 border border-slate-700 p-4 rounded-xl flex justify-between items-center gap-4">
+                                <div>
+                                    <span class="text-[10px] uppercase font-bold text-indigo-400 bg-indigo-950 px-2 py-0.5 rounded border border-indigo-800" x-text="q.type"></span>
+                                    <h4 class="font-bold text-sm mt-1" x-text="q.text"></h4>
+                                    <p class="text-xs text-slate-400" x-text="`Timer: ${q.timer}s`"></p>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <button @click="publishQuestion(q)" class="bg-emerald-600 hover:bg-emerald-500 text-xs px-3 py-1.5 rounded-lg font-bold transition">Publish Now</button>
+                                    <button @click="deleteQuestion(idx)" class="bg-red-600/80 hover:bg-red-600 text-xs px-2.5 py-1.5 rounded-lg transition">Delete</button>
                                 </div>
                             </div>
-                        ` : ''}
-
-                        ${hasAnswered && !state.settings.instantFeedback ? `
-                            <div class="p-3 rounded-lg border border-gray-700 bg-cyber-black/60 text-xs text-gray-400 flex items-center gap-2">
-                                <i class="fa-solid fa-clock"></i> Answer recorded. Results will be revealed later.
-                            </div>
-                        ` : ''}
-
-                        ${!hasAnswered && isTimeExpired ? `
-                            <div class="p-3 rounded-lg border border-cyber-magenta/40 bg-cyber-magenta/10 text-xs text-cyber-magenta flex items-center gap-2">
-                                <i class="fa-solid fa-lock"></i> Time expired for this query! Submission locked.
-                            </div>
-                        ` : ''}
+                        </template>
+                        <template x-if="questionBank.length === 0">
+                            <p class="text-xs text-slate-500 text-center py-4">Question bank is empty. Add questions above.</p>
+                        </template>
                     </div>
-                `;
-            }).join('');
-        }
+                </div>
 
-        function renderParticipantInput(q, isDisabled, submittedAnswer) {
-            if (q.type === 'mc' || q.type === 'tf' || q.type === 'yn') {
-                return `<div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    ${q.choices.map(choice => {
-                        const isSelected = submittedAnswer === choice;
-                        return `
-                            <button 
-                                ${isDisabled ? 'disabled' : ''} 
-                                onclick="submitAnswer('${q.id}', '${choice.replace(/'/g, "\\'")}')"
-                                class="p-3 rounded-lg border text-left font-semibold transition flex justify-between items-center ${ isSelected ? 'bg-cyber-cyan/20 border-cyber-cyan text-cyber-cyan' : 'bg-cyber-black/60 border-gray-800 text-gray-300 hover:border-cyber-cyan/50' } ${isDisabled ? 'cursor-not-allowed opacity-60' : ''}">
-                                <span>${choice}</span>${isSelected ? '<i class="fa-solid fa-check-circle text-cyber-cyan"></i>' : ''}
-                            </button>
-                        `;
-                    }).join('')}
-                </div>`;
-            } else if (q.type === 'id') {
-                return `
-                    <div class="flex gap-2">
-                        <input type="text" id="input-id-${q.id}" ${isDisabled ? `value="${submittedAnswer || ''}" disabled` : ''} 
-                            placeholder="Type answer..." 
-                            class="flex-grow bg-cyber-black border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-cyber-cyan">
-                        ${!isDisabled ? `
-                            <button onclick="submitDirectAnswer('${q.id}')" class="btn-cyber-cyan px-6 py-2 rounded-lg font-orbitron font-bold text-white text-sm">
-                                SUBMIT
-                            </button>
-                        ` : ''}
+                <!-- Live Participant Tracking Monitor -->
+                <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl space-y-4">
+                    <h3 class="text-lg font-bold text-indigo-400 border-b border-slate-700 pb-2">👥 Participant Stats</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-slate-900 text-slate-400">
+                                <tr>
+                                    <th class="p-2.5">Participant</th>
+                                    <th class="p-2.5">Score</th>
+                                    <th class="p-2.5">Wrong Answers</th>
+                                    <th class="p-2.5">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-800">
+                                <template x-for="(data, name) in scores" :key="name">
+                                    <tr>
+                                        <td class="p-2.5 font-bold" x-text="name"></td>
+                                        <td class="p-2.5 font-mono text-indigo-400" x-text="data.score"></td>
+                                        <td class="p-2.5 font-mono text-red-400" x-text="data.wrongCount || 0"></td>
+                                        <td class="p-2.5">
+                                            <span :class="data.eliminated ? 'bg-red-950 text-red-400 border-red-800' : 'bg-emerald-950 text-emerald-400 border-emerald-800'" class="px-2 py-0.5 border rounded text-[10px] font-bold" x-text="data.eliminated ? 'Eliminated' : 'Active'"></span>
+                                        </td>
+                                    </tr>
+                                </template>
+                            </tbody>
+                        </table>
                     </div>
-                `;
+                </div>
+
+            </div>
+        </template>
+    </main>
+
+    <!-- App Logic -->
+    <script>
+        function quizApp() {
+            return {
+                isAdmin: false,
+                currentView: 'participant',
+                participantName: localStorage.getItem('qa_participant') || '',
+                tempName: '',
+                
+                // Question Bank & Active State
+                questionBank: JSON.parse(localStorage.getItem('qa_bank') || '[]'),
+                activeQuestion: JSON.parse(localStorage.getItem('qa_active') || 'null'),
+                timer: parseInt(localStorage.getItem('qa_timer') || '0'),
+                scores: JSON.parse(localStorage.getItem('qa_scores') || '{}'),
+                correctCount: parseInt(localStorage.getItem('qa_correct_count') || '0'),
+
+                // Admin Customizations
+                adminSettings: JSON.parse(localStorage.getItem('qa_admin_settings') || JSON.stringify({
+                    showImmediateResult: true,
+                    showCountOnly: false,
+                    showScoreboard: true,
+                    maskNames: false,
+                    maskMode: 'questionMarks',
+                    autoEliminate: false,
+                    maxWrongAnswers: 3
+                })),
+
+                // Question Creator Form Model
+                newQ: {
+                    type: 'mc',
+                    text: '',
+                    timer: 20,
+                    options: ['', '', '', ''],
+                    correctMc: 0,
+                    correctTf: 'True',
+                    validAnswers: '',
+                    orderItems: ''
+                },
+
+                // Participant Response State
+                hasSubmitted: false,
+                selectedMcOption: null,
+                identificationInput: '',
+                userOrder: [],
+                lastAnswerCorrect: false,
+                timerInterval: null,
+
+                init() {
+                    if (localStorage.getItem('qa_is_admin') === 'true') {
+                        this.isAdmin = true;
+                    }
+
+                    // Sync state across browsers/tabs
+                    window.addEventListener('storage', (e) => {
+                        if (e.key === 'qa_active') {
+                            this.activeQuestion = JSON.parse(e.newValue);
+                            this.resetParticipantAnswerState();
+                        }
+                        if (e.key === 'qa_timer') this.timer = parseInt(e.newValue || '0');
+                        if (e.key === 'qa_scores') this.scores = JSON.parse(e.newValue || '{}');
+                        if (e.key === 'qa_admin_settings') this.adminSettings = JSON.parse(e.newValue);
+                        if (e.key === 'qa_correct_count') this.correctCount = parseInt(e.newValue || '0');
+                    });
+
+                    // Countdown Timer loop
+                    this.timerInterval = setInterval(() => {
+                        if (this.timer > 0) {
+                            this.timer--;
+                            if (this.isAdmin) localStorage.setItem('qa_timer', this.timer.toString());
+                        }
+                    }, 1000);
+
+                    if (this.activeQuestion && this.activeQuestion.type === 'order') {
+                        this.initOrderItems();
+                    }
+                },
+
+                get isEliminated() {
+                    if (!this.participantName || !this.scores[this.participantName]) return false;
+                    return !!this.scores[this.participantName].eliminated;
+                },
+
+                handleLogoClick() {
+                    if (this.isAdmin) {
+                        this.currentView = this.currentView === 'admin' ? 'participant' : 'admin';
+                        return;
+                    }
+                    let pwd = prompt("Enter Admin Password:");
+                    if (pwd === "Edpogi") {
+                        this.isAdmin = true;
+                        this.currentView = 'admin';
+                        localStorage.setItem('qa_is_admin', 'true');
+                    } else if (pwd !== null) {
+                        alert("Incorrect password.");
+                    }
+                },
+
+                logoutAdmin() {
+                    this.isAdmin = false;
+                    this.currentView = 'participant';
+                    localStorage.removeItem('qa_is_admin');
+                },
+
+                joinAsParticipant() {
+                    if (!this.tempName.trim()) return alert("Please enter a valid name.");
+                    this.participantName = this.tempName.trim();
+                    localStorage.setItem('qa_participant', this.participantName);
+
+                    if (!this.scores[this.participantName]) {
+                        this.scores[this.participantName] = { score: 0, wrongCount: 0, eliminated: false };
+                        this.saveScores();
+                    }
+                },
+
+                resetParticipant() {
+                    this.participantName = '';
+                    localStorage.removeItem('qa_participant');
+                },
+
+                saveAdminSettings() {
+                    localStorage.setItem('qa_admin_settings', JSON.stringify(this.adminSettings));
+                },
+
+                saveQuestionToBank() {
+                    if (!this.newQ.text.trim()) return alert("Please enter a question prompt.");
+                    
+                    let q = {
+                        id: Date.now(),
+                        type: this.newQ.type,
+                        text: this.newQ.text,
+                        timer: this.newQ.timer || 20
+                    };
+
+                    if (q.type === 'mc') {
+                        q.options = [...this.newQ.options];
+                        q.correct = this.newQ.correctMc;
+                    } else if (q.type === 'tf') {
+                        q.options = ['True', 'False'];
+                        q.correct = this.newQ.correctTf;
+                    } else if (q.type === 'identification') {
+                        q.validAnswers = this.newQ.validAnswers.split(',').map(s => s.trim().toLowerCase());
+                    } else if (q.type === 'order') {
+                        q.correctOrder = this.newQ.orderItems.split('\n').map(s => s.trim()).filter(s => s.length > 0);
+                    }
+
+                    this.questionBank.push(q);
+                    localStorage.setItem('qa_bank', JSON.stringify(this.questionBank));
+                    alert("Question saved to bank!");
+                    this.newQ.text = '';
+                },
+
+                deleteQuestion(index) {
+                    this.questionBank.splice(index, 1);
+                    localStorage.setItem('qa_bank', JSON.stringify(this.questionBank));
+                },
+
+                publishQuestion(question) {
+                    this.activeQuestion = question;
+                    this.timer = question.timer;
+                    this.correctCount = 0;
+                    localStorage.setItem('qa_active', JSON.stringify(this.activeQuestion));
+                    localStorage.setItem('qa_timer', this.timer.toString());
+                    localStorage.setItem('qa_correct_count', '0');
+                    
+                    this.resetParticipantAnswerState();
+                    alert("Question published!");
+                },
+
+                resetParticipantAnswerState() {
+                    this.hasSubmitted = false;
+                    this.selectedMcOption = null;
+                    this.identificationInput = '';
+                    this.initOrderItems();
+                },
+
+                initOrderItems() {
+                    if (this.activeQuestion && this.activeQuestion.type === 'order') {
+                        // Shuffle items for participant view
+                        this.userOrder = [...this.activeQuestion.correctOrder].sort(() => Math.random() - 0.5);
+                    }
+                },
+
+                moveOrder(index, direction) {
+                    let target = index + direction;
+                    if (target < 0 || target >= this.userOrder.length) return;
+                    let temp = this.userOrder[index];
+                    this.userOrder[index] = this.userOrder[target];
+                    this.userOrder[target] = temp;
+                },
+
+                selectMcOption(idx) {
+                    if (this.hasSubmitted || this.timer <= 0) return;
+                    this.selectedMcOption = idx;
+                },
+
+                submitAnswer() {
+                    if (this.hasSubmitted || this.timer <= 0) return;
+
+                    let isCorrect = false;
+
+                    if (this.activeQuestion.type === 'mc') {
+                        isCorrect = (this.selectedMcOption === this.activeQuestion.correct);
+                    } else if (this.activeQuestion.type === 'tf') {
+                        isCorrect = (this.activeQuestion.options[this.selectedMcOption] === this.activeQuestion.correct);
+                    } else if (this.activeQuestion.type === 'identification') {
+                        let cleanInput = this.identificationInput.trim().toLowerCase();
+                        isCorrect = this.activeQuestion.validAnswers.includes(cleanInput);
+                    } else if (this.activeQuestion.type === 'order') {
+                        isCorrect = JSON.stringify(this.userOrder) === JSON.stringify(this.activeQuestion.correctOrder);
+                    }
+
+                    this.hasSubmitted = true;
+                    this.lastAnswerCorrect = isCorrect;
+
+                    // Update Score Record
+                    if (!this.scores[this.participantName]) {
+                        this.scores[this.participantName] = { score: 0, wrongCount: 0, eliminated: false };
+                    }
+
+                    let pData = this.scores[this.participantName];
+
+                    if (isCorrect) {
+                        pData.score += 10;
+                        this.correctCount++;
+                        localStorage.setItem('qa_correct_count', this.correctCount.toString());
+                    } else {
+                        pData.wrongCount = (pData.wrongCount || 0) + 1;
+                        if (this.adminSettings.autoEliminate && pData.wrongCount >= this.adminSettings.maxWrongAnswers) {
+                            pData.eliminated = true;
+                        }
+                    }
+
+                    this.saveScores();
+                },
+
+                saveScores() {
+                    localStorage.setItem('qa_scores', JSON.stringify(this.scores));
+                },
+
+                resetScores() {
+                    if (confirm("Reset all leaderboard scores and participant status?")) {
+                        this.scores = {};
+                        this.saveScores();
+                    }
+                },
+
+                formatName(name) {
+                    if (!this.adminSettings.maskNames || this.isAdmin) return name;
+
+                    let mode = this.adminSettings.maskMode;
+                    if (mode === 'questionMarks') return '??';
+                    if (mode === 'initial') return name.charAt(0) + '***';
+                    if (mode === 'firstTwo') return name.length > 2 ? name.substring(0, 2) + '***' : name;
+                    if (mode === 'lengthOnly') return `[${name.length} Letters]`;
+                    return '??';
+                }
             }
-        }
-
-        function submitAnswer(qId, selectedChoice) {
-            const question = state.questions.find(q => q.id === qId);
-            if (!question || question.timeRemaining <= 0) return;
-
-            const isCorrect = selectedChoice.trim().toLowerCase() === question.correctAnswer.trim().toLowerCase();
-            state.participant.answers[qId] = selectedChoice;
-            state.participant.scores[qId] = isCorrect;
-            saveState();
-            renderParticipantPortal();
-        }
-
-        function submitDirectAnswer(qId) {
-            const inputElem = document.getElementById(`input-id-${qId}`);
-            if (!inputElem) return;
-            const inputVal = inputElem.value.trim();
-            if (!inputVal) return;
-            submitAnswer(qId, inputVal);
-        }
-
-        function calculateAndDisplayScore() {
-            const published = state.questions.filter(q => q.published);
-            let score = 0;
-            published.forEach(q => {
-                if (state.participant.scores[q.id] === true) score++;
-            });
-            const scoreElem = document.getElementById('display-user-score');
-            if(scoreElem) scoreElem.innerText = `${score} / ${published.length}`;
-        }
-
-        function openQRModal() {
-            const modal = document.getElementById('qr-modal');
-            const qrContainer = document.getElementById('qrcode');
-            qrContainer.innerHTML = '';
-            
-            // Automatically append #participant hash so QR code directs straight to participant view
-            const participantURL = window.location.origin + window.location.pathname + '#participant';
-            document.getElementById('qr-link-text').innerText = participantURL;
-
-            new QRCode(qrContainer, {
-                text: participantURL,
-                width: 180,
-                height: 180,
-                colorDark: "#030712",
-                colorLight: "#ffffff"
-            });
-            modal.classList.remove('hidden');
-        }
-
-        function closeQRModal() {
-            document.getElementById('qr-modal').classList.add('hidden');
         }
     </script>
 </body>
