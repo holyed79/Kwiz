@@ -42,7 +42,7 @@
     <!-- Main Container -->
     <main class="flex-grow p-4 max-w-5xl w-full mx-auto flex flex-col justify-center">
 
-        <!-- 1. Participant Registration Modal -->
+        <!-- 1. Participant Registration Screen -->
         <template x-if="!isAdmin && !participantName">
             <div class="bg-slate-800 border border-slate-700 p-8 rounded-2xl shadow-2xl max-w-md mx-auto text-center w-full">
                 <div class="text-4xl mb-3">🎮</div>
@@ -62,11 +62,11 @@
             </div>
         </template>
 
-        <!-- 2. Participant View -->
+        <!-- 2. Participant View Board -->
         <template x-if="(isAdmin || participantName) && (!isEliminated || isAdmin) && (currentView === 'participant' || !isAdmin)">
             <div class="space-y-6 w-full">
                 
-                <!-- Active Published Question -->
+                <!-- Active Published Question Display -->
                 <template x-if="activeQuestion">
                     <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl space-y-6">
                         <div class="flex justify-between items-center border-b border-slate-700/60 pb-4">
@@ -75,8 +75,6 @@
                         </div>
 
                         <h3 class="text-xl font-bold text-slate-100" x-text="activeQuestion.text"></h3>
-
-                        <!-- QUESTION TYPES RENDERING -->
 
                         <!-- Multiple Choice / True-False -->
                         <template x-if="['mc', 'tf'].includes(activeQuestion.type)">
@@ -102,7 +100,7 @@
                             </div>
                         </template>
 
-                        <!-- Order / Sequence -->
+                        <!-- Ordering Sequence -->
                         <template x-if="activeQuestion.type === 'order'">
                             <div class="space-y-2">
                                 <p class="text-xs text-slate-400 mb-2">Arrange items in correct order using ▲ / ▼ arrows:</p>
@@ -123,7 +121,7 @@
                             <button @click="submitAnswer" :disabled="timer <= 0" class="w-full bg-emerald-600 hover:bg-emerald-500 disabled:bg-slate-700 font-bold py-3 rounded-xl transition shadow-lg">Submit Answer</button>
                         </template>
 
-                        <!-- Feedback Settings Applied -->
+                        <!-- Immediate Feedback -->
                         <template x-if="hasSubmitted">
                             <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-700 text-center space-y-2">
                                 <p class="text-emerald-400 font-bold text-sm">✓ Answer Submitted!</p>
@@ -138,7 +136,7 @@
                             </div>
                         </template>
 
-                        <!-- Show count of participants with correct answers if enabled by admin -->
+                        <!-- Count only indicator -->
                         <template x-if="adminSettings.showCountOnly">
                             <div class="bg-indigo-950/40 border border-indigo-800/60 p-3 rounded-xl text-center">
                                 <p class="text-xs text-indigo-300">Total Participants Correct: <span class="font-bold text-sm text-indigo-200" x-text="correctCount"></span></p>
@@ -155,7 +153,7 @@
                     </div>
                 </template>
 
-                <!-- Scoreboard Card -->
+                <!-- Leaderboard Card -->
                 <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl space-y-4">
                     <div class="flex justify-between items-center">
                         <h4 class="font-bold text-md flex items-center space-x-2">
@@ -189,7 +187,7 @@
         <template x-if="isAdmin && currentView === 'admin'">
             <div class="space-y-8 w-full py-4">
                 
-                <!-- Admin Control Panel for Display & Feedback Settings -->
+                <!-- Admin Live Controls -->
                 <div class="bg-slate-800 border border-slate-700 p-6 rounded-2xl shadow-xl space-y-4">
                     <h3 class="text-lg font-bold text-indigo-400 border-b border-slate-700 pb-2">⚙️ Admin Live Controls</h3>
                     
@@ -432,7 +430,7 @@
                         this.isAdmin = true;
                     }
 
-                    // Polling data sync every 1 second to update scores, participant lists, and active questions in real time across browser windows/tabs
+                    // Polling data loop (every 500ms) to ensure instant synchronization of participant lists, active questions, and timers across all connected participant browsers/tabs
                     setInterval(() => {
                         let storedScores = localStorage.getItem('qa_scores');
                         if (storedScores) {
@@ -445,9 +443,12 @@
                         let storedActive = localStorage.getItem('qa_active');
                         let currentActiveStr = JSON.stringify(this.activeQuestion);
                         if (storedActive !== currentActiveStr) {
-                            this.activeQuestion = storedActive ? JSON.parse(storedActive) : null;
-                            if (this.activeQuestion) {
-                                this.resetParticipantAnswerState();
+                            let newActive = storedActive ? JSON.parse(storedActive) : null;
+                            if (JSON.stringify(newActive) !== currentActiveStr) {
+                                this.activeQuestion = newActive;
+                                if (this.activeQuestion) {
+                                    this.resetParticipantAnswerState();
+                                }
                             }
                         }
 
@@ -455,7 +456,7 @@
                         if (storedTimer !== null) {
                             this.timer = parseInt(storedTimer);
                         }
-                    }, 1000);
+                    }, 500);
 
                     // Countdown Timer loop for admin driver
                     this.timerInterval = setInterval(() => {
@@ -503,14 +504,13 @@
                     this.participantName = this.tempName.trim();
                     localStorage.setItem('qa_participant', this.participantName);
 
-                    if (!this.scores[this.participantName]) {
-                        this.scores[this.participantName] = { score: 0, wrongCount: 0, eliminated: false };
-                    } else {
-                        // Ensure property exists if re-joining
-                        if (this.scores[this.participantName].score === undefined) this.scores[this.participantName].score = 0;
-                        if (this.scores[this.participantName].wrongCount === undefined) this.scores[this.participantName].wrongCount = 0;
+                    // Pull latest scores to avoid overwriting other participants
+                    let currentScores = JSON.parse(localStorage.getItem('qa_scores') || '{}');
+                    if (!currentScores[this.participantName]) {
+                        currentScores[this.participantName] = { score: 0, wrongCount: 0, eliminated: false };
                     }
-                    this.saveScores();
+                    this.scores = currentScores;
+                    localStorage.setItem('qa_scores', JSON.stringify(this.scores));
                 },
 
                 resetParticipant() {
@@ -560,6 +560,8 @@
                     this.activeQuestion = question;
                     this.timer = question.timer;
                     this.correctCount = 0;
+                    
+                    // Immediately write to localStorage to broadcast instantly to all participants
                     localStorage.setItem('qa_active', JSON.stringify(this.activeQuestion));
                     localStorage.setItem('qa_timer', this.timer.toString());
                     localStorage.setItem('qa_correct_count', '0');
@@ -621,11 +623,13 @@
                     this.hasSubmitted = true;
                     this.lastAnswerCorrect = isCorrect;
 
-                    if (!this.scores[this.participantName]) {
-                        this.scores[this.participantName] = { score: 0, wrongCount: 0, eliminated: false };
+                    // Fetch current scores from storage to merge safely
+                    let currentScores = JSON.parse(localStorage.getItem('qa_scores') || '{}');
+                    if (!currentScores[this.participantName]) {
+                        currentScores[this.participantName] = { score: 0, wrongCount: 0, eliminated: false };
                     }
 
-                    let pData = this.scores[this.participantName];
+                    let pData = currentScores[this.participantName];
 
                     if (isCorrect) {
                         pData.score += 10;
@@ -638,17 +642,14 @@
                         }
                     }
 
-                    this.saveScores();
-                },
-
-                saveScores() {
+                    this.scores = currentScores;
                     localStorage.setItem('qa_scores', JSON.stringify(this.scores));
                 },
 
                 resetScores() {
                     if (confirm("Reset all leaderboard scores and participant statuses?")) {
                         this.scores = {};
-                        this.saveScores();
+                        localStorage.setItem('qa_scores', JSON.stringify(this.scores));
                     }
                 },
 
